@@ -5,9 +5,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.logintojwt.entity.UserAndTokenRequest;
-import org.example.logintojwt.entity.UserRequest;
-import org.example.logintojwt.entity.UserResponse;
+import org.example.logintojwt.entity.request.UserAndTokenRequest;
+import org.example.logintojwt.entity.request.UserRequest;
+import org.example.logintojwt.entity.response.AccessTokenAndRefreshTokenResponse;
+import org.example.logintojwt.entity.response.UserResponse;
+import org.example.logintojwt.service.RefreshTokenService;
 import org.example.logintojwt.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 public class UserController {
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@Valid @RequestBody UserRequest userRequest) {
@@ -27,22 +30,19 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody UserRequest userRequest, HttpServletResponse response) {
-        log.info("일단 넘어옴");
-        log.info(userRequest.getUsername());
-        log.info((userRequest.getPassword()));
+    public ResponseEntity<AccessTokenAndRefreshTokenResponse> login(@Valid @RequestBody UserRequest userRequest, HttpServletResponse response) {
         return ResponseEntity.ok(userService.login(userRequest, response));
     }
 
-    /*@PostMapping("/logout")
+    @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        userService.logout(request, response); //만들어야함
-    }*/
+        return ResponseEntity.ok(userService.logout(request, response));
+    }
 
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
         try {
-            UserAndTokenRequest userAndTokenRequest = userService.accessTokenReissue(request, response);
+            UserAndTokenRequest userAndTokenRequest = refreshTokenService.accessTokenReissue(request, response);
             return ResponseEntity.ok(userAndTokenRequest);
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());

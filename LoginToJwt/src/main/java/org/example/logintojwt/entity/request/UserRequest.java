@@ -1,4 +1,4 @@
-package org.example.logintojwt.entity;
+package org.example.logintojwt.entity.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

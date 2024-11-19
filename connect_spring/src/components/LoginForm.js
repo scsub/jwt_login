@@ -20,8 +20,8 @@ function LoginForm() {
 
         try {
             console.log(user);
-            const response = await postLoginForm(user);
-            console.log("로그인 성공:", response.data);
+            const data = await postLoginForm(user);
+            console.log("로그인 성공:", data);
         } catch (error) {
             console.error("로그인 실패:", error);
         }

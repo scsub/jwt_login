@@ -40,9 +40,13 @@ api.interceptors.response.use(
 export default api;
 
 export const getMessage = async () => {
-    return (await api.get(`/check`)).data;
+    return await api.get(`/test`);
 };
 
 export const postLoginForm = async (user) => {
-    return await api.post(`/login`, user);
+    return (await api.post(`/login`, user)).data;
 }; // 쿠키를 포함할수 있게된다 물론 cors의 allowCredentials 설정을 해줘야함
+
+export const logout = async () => {
+    return await api.post(`/logout`);
+};
