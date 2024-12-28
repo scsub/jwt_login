@@ -1,3 +1,11 @@
+# 1.3
+https 적용하고 http로 요청시 https로 넘기도록 설정
+프로퍼티 파일을 @Value가 아닌 @ConfigurationProperties를 사용하여 클래스를 만들어 받도록 수정
+회원 수정 기능 추가
+예외, request, contorlle 등 가독성 좋게 수정
+자주 사용하는 이름, 비밀번호 상속
+
+
 # 1.2
 로그아웃 구현 및 엑서스 토큰이 받아지지 않는 부분 수정
 
