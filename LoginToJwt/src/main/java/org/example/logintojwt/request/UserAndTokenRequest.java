@@ -1,4 +1,4 @@
-package org.example.logintojwt.entity.response;
+package org.example.logintojwt.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AccessTokenAndRefreshTokenResponse {
-    private String accessToken;
-    private String refreshToken;
+public class UserAndTokenRequest {
+    private String username;
+    private String token;
 }

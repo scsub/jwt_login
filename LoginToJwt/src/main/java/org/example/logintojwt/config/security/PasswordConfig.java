@@ -1,4 +1,4 @@
-package org.example.logintojwt.config;
+package org.example.logintojwt.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

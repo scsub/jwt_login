@@ -3,9 +3,9 @@ package org.example.logintojwt.jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.example.logintojwt.properties.JwtTokenProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -17,31 +17,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtProvider {
-    @Value("${jwt.secret}")
-    private String secretKey;
-
+    private final JwtTokenProperties jwtTokenProperties;
     private Key key;
 
-    @Getter
-    @Value("${refresh-valid-time}")
-    private long refreshTokenValidTime;
-
-    @Getter
-    @Value("${access-valid-time}")
-    private long accessTokenValidTime;
 
     @PostConstruct
     protected void init() {
-        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
+        this.key = Keys.hmacShaKeyFor(jwtTokenProperties.getSecret().getBytes());
     }
 
     public String createAccessToken(Authentication authentication) {
-        return createToken(authentication, accessTokenValidTime);
+        return createToken(authentication, jwtTokenProperties.getAccessValidTime());
     }
 
     public String createRefreshToken(Authentication authentication) {
-        return createToken(authentication, refreshTokenValidTime);
+        return createToken(authentication, jwtTokenProperties.getRefreshValidTime());
     }
 
     private String createToken(Authentication authentication, long tokenValidTime) {

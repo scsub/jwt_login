@@ -1,25 +1,27 @@
 import { useState } from "react";
-import { postLoginForm } from "../api/ApiService";
+import { signupPost } from "../api/ApiService";
 
-function LoginForm() {
+function SignupFrom() {
     const [user, setUser] = useState({
         username: "",
         password: "",
+        email: "",
+        phoneNumber: "",
+        address: "",
     });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         try {
             console.log(user);
-            const data = await postLoginForm(user);
-            console.log("로그인 성공:", data);
+            const data = await signupPost(user);
+            console.log("회원가입 성공:", data);
         } catch (error) {
-            console.error("로그인 실패:", error);
+            console.error("회원가입 실패:", error);
         }
     };
 
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
         setUser({
             ...user,
             [e.target.name]: e.target.value,
@@ -35,7 +37,7 @@ function LoginForm() {
                 <label>비밀번호:</label>
                 <input type="password" name="password" value={user.password} onChange={handleChange} />
             </div>
-            {/* <div>
+            <div>
                 <label>이메일:</label>
                 <input type="email" name="email" value={user.email} onChange={handleChange} />
             </div>
@@ -46,11 +48,11 @@ function LoginForm() {
             <div>
                 <label>주소:</label>
                 <input type="text" name="address" value={user.address} onChange={handleChange} />
-            </div> */}
+            </div>
 
-            <button type="submit">로그인</button>
+            <button type="submit">회원가입</button>
         </form>
     );
 }
 
-export default LoginForm;
+export default SignupFrom;

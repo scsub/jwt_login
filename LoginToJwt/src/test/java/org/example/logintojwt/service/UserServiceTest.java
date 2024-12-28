@@ -1,11 +1,14 @@
 package org.example.logintojwt.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.logintojwt.config.security.CustomUserDetailsService;
+import org.example.logintojwt.entity.Role;
 import org.example.logintojwt.entity.User;
-import org.example.logintojwt.entity.request.UserAndTokenRequest;
-import org.example.logintojwt.entity.request.UserRequest;
-import org.example.logintojwt.entity.response.AccessTokenAndRefreshTokenResponse;
-import org.example.logintojwt.entity.response.UserResponse;
+import org.example.logintojwt.request.UserLoginRequest;
+import org.example.logintojwt.request.UserProfileRequest;
+import org.example.logintojwt.request.UserRegistrationRequest;
+import org.example.logintojwt.response.AccessTokenAndRefreshTokenResponse;
+import org.example.logintojwt.response.UserResponse;
 import org.example.logintojwt.exception.UserAlreadyExistsException;
 import org.example.logintojwt.jwt.JwtProvider;
 import org.example.logintojwt.repository.UserRepository;
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) // Mockito, JUnit 통합 사용
@@ -58,10 +62,15 @@ class UserServiceTest {
         String username = "aaaaaa";
         String password = "bbbbbb";
         String encodedPassword = "encodedPassword123";
-
-        UserRequest userRequest = UserRequest.builder()
+        String address = " address";
+        String phoneNumber = "01012345678";
+        String email = "abc123456@gmail.com";
+        UserRegistrationRequest userRegistrationRequest = UserRegistrationRequest.builder()
                 .username(username)
                 .password(password)
+                .address(address)
+                .phoneNumber(phoneNumber)
+                .email(email)
                 .build();
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
@@ -75,7 +84,7 @@ class UserServiceTest {
         );
 
         //Act
-        UserResponse userResponse = userService.signup(userRequest);
+        UserResponse userResponse = userService.signup(userRegistrationRequest);
 
         //Assert
         assertThat(userResponse).isNotNull();
@@ -91,22 +100,31 @@ class UserServiceTest {
     void testSignupUserAlreadyExists() {
         String username = "aaaaaa";
         String password = "bbbbbb";
-
-        UserRequest userRequest = UserRequest.builder()
+        String encodedPassword = "encodedPassword123";
+        String address = " address";
+        String phoneNumber = "01012345678";
+        String email = "abc123456@gmail.com";
+        UserRegistrationRequest userRegistrationRequest = UserRegistrationRequest.builder()
                 .username(username)
                 .password(password)
+                .address(address)
+                .phoneNumber(phoneNumber)
+                .email(email)
                 .build();
 
         User existingUser = User.builder()
                 .username(username)
                 .password("encodedPassword")
+                .address(address)
+                .phoneNumber(phoneNumber)
+                .email(email)
                 .build();
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(existingUser));
 
-        assertThatThrownBy(() -> userService.signup(userRequest))
+        assertThatThrownBy(() -> userService.signup(userRegistrationRequest))
                 .isInstanceOf(UserAlreadyExistsException.class)
-                .hasMessage("이미 존재하는 아이디입니다.");
+                .hasMessage("이미 존재하는 아이디입니다");
 
         verify(userRepository, never()).save(any(User.class));
     }
@@ -115,11 +133,16 @@ class UserServiceTest {
     void testPasswordEncryption() {
         String username = "aaaaaa";
         String password = "bbbbbb";
-        String encodedPassword = "encodedbbbbbb";
-
-        UserRequest userRequest = UserRequest.builder()
+        String encodedPassword = "encodedPassword123";
+        String address = "address";
+        String phoneNumber = "01012345678";
+        String email = "abc123456@gmail.com";
+        UserRegistrationRequest userRegistrationRequest = UserRegistrationRequest.builder()
                 .username(username)
                 .password(password)
+                .address(address)
+                .phoneNumber(phoneNumber)
+                .email(email)
                 .build();
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
@@ -130,7 +153,7 @@ class UserServiceTest {
             return user;
         });
 
-        UserResponse userResponse = userService.signup(userRequest);
+        UserResponse userResponse = userService.signup(userRegistrationRequest);
 
         assertThat(userResponse).isNotNull();
         assertThat(userResponse.getUsername()).isEqualTo(username);
@@ -150,7 +173,7 @@ class UserServiceTest {
         String accessToken = "access-token";
         String refreshToken = "refresh-token";
 
-        UserRequest userRequest = UserRequest.builder()
+        UserLoginRequest userLoginRequest = UserLoginRequest.builder()
                 .username(username)
                 .password(password)
                 .build();
@@ -170,7 +193,7 @@ class UserServiceTest {
 
 
         //실행
-        AccessTokenAndRefreshTokenResponse result = userService.login(userRequest, response);
+        AccessTokenAndRefreshTokenResponse result = userService.login(userLoginRequest, response);
 
         //검증
         assertThat(result).isNotNull();
@@ -179,7 +202,7 @@ class UserServiceTest {
 
         // 쿠키 검증
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(response, times(1)).addHeader(eq(HttpHeaders.SET_COOKIE), captor.capture());
+        verify(response, times(2)).addHeader(eq(HttpHeaders.SET_COOKIE), captor.capture());
 
         List<String> cookies = captor.getAllValues();
         assertThat(cookies).hasSize(2);
@@ -196,7 +219,7 @@ class UserServiceTest {
         String username = "testuser";
         String password = "wrongpassword";
 
-        UserRequest userRequest = UserRequest.builder()
+        UserLoginRequest userLoginRequest = UserLoginRequest.builder()
                 .username(username)
                 .password(password)
                 .build();
@@ -207,7 +230,7 @@ class UserServiceTest {
 
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        assertThatThrownBy(() -> userService.login(userRequest, response))
+        assertThatThrownBy(() -> userService.login(userLoginRequest, response))
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessageContaining("아이디 또는 비밀번호가 올바르지 않습니다.");
 
@@ -216,6 +239,43 @@ class UserServiceTest {
         verify(response, never()).addHeader(eq(HttpHeaders.SET_COOKIE), anyString());
         verify(refreshTokenService, never()).saveRefreshToken(anyString(), anyString(), anyLong());
     }
+
+    @Test
+    void changeProfileTest(){
+
+        String username = "testUsername";
+
+        UserProfileRequest userProfileRequest = UserProfileRequest.builder()
+                .password("newPassword")
+                .email("newnew@gmail.com")
+                .phoneNumber("01087654321")
+                .address("대전")
+                .build();
+
+
+        User user = User.builder()
+                .username("testUsername")
+                .password("testPassword")
+                .email("test@example.com")
+                .phoneNumber("01012345678")
+                .address("서울")
+                .roles(List.of(Role.ROLE_USER))
+                .build();
+
+        when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("newPassword")).thenReturn("encodedPassword");
+
+        userService.changeProfile(username, userProfileRequest);
+
+
+        assertEquals("encodedPassword", user.getPassword());
+        assertEquals("newnew@gmail.com", user.getEmail());
+        assertEquals("01087654321", user.getPhoneNumber());
+        assertEquals("대전", user.getAddress());
+
+        verify(userRepository, times(1)).save(user);
+    }
+
 
     private void idReflection(User user, Long id) {
         try {
@@ -226,6 +286,7 @@ class UserServiceTest {
             throw new RuntimeException(e);
         }
     }
+
 
 }
 

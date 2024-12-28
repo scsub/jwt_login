@@ -1,4 +1,4 @@
-package org.example.logintojwt.service;
+package org.example.logintojwt.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.example.logintojwt.entity.User;

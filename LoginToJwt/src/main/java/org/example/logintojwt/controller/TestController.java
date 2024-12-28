@@ -10,4 +10,8 @@ public class TestController {
     public String  testt() {
         return "승인됨";
     }
+    @GetMapping("/api/page")
+    public String page(){
+        return "페이지";
+    }
 }

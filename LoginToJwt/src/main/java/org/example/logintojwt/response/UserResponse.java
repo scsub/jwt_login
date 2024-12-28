@@ -1,4 +1,4 @@
-package org.example.logintojwt.entity.response;
+package org.example.logintojwt.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

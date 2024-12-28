@@ -1,19 +1,20 @@
 package org.example.logintojwt.service;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.logintojwt.config.security.CustomUserDetailsService;
 import org.example.logintojwt.entity.User;
-import org.example.logintojwt.entity.request.UserAndTokenRequest;
-import org.example.logintojwt.entity.request.UserRequest;
-import org.example.logintojwt.entity.response.AccessTokenAndRefreshTokenResponse;
-import org.example.logintojwt.entity.response.UserResponse;
+import org.example.logintojwt.properties.JwtTokenProperties;
+import org.example.logintojwt.request.UserLoginRequest;
+import org.example.logintojwt.request.UserProfileRequest;
+import org.example.logintojwt.request.UserRegistrationRequest;
+import org.example.logintojwt.response.AccessTokenAndRefreshTokenResponse;
+import org.example.logintojwt.response.UserResponse;
 import org.example.logintojwt.exception.UserAlreadyExistsException;
 import org.example.logintojwt.jwt.JwtProvider;
 import org.example.logintojwt.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +22,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,31 +40,33 @@ public class UserService {
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtTokenProperties jwtTokenProperties;
 
-    @Value("${refresh-valid-time}")
-    private long refreshTokenValidTime;
+    public UserResponse signup(UserRegistrationRequest userRegistrationRequest) {
 
-    @Value("${access-valid-time}")
-    private long accessTokenValidTime;
-
-    public UserResponse signup(UserRequest userRequest) {
-        String username = userRequest.getUsername();
-        String password = userRequest.getPassword();
+        String username = userRegistrationRequest.getUsername();
+        String password = userRegistrationRequest.getPassword();
+        String email = userRegistrationRequest.getEmail();
+        String phoneNumber = userRegistrationRequest.getPhoneNumber();
+        String address = userRegistrationRequest.getAddress();
         if (userRepository.findByUsername(username).isPresent()){
             throw new UserAlreadyExistsException("이미 존재하는 아이디입니다");
         }
         User user = User.builder()
                 .username(username)
                 .password(passwordEncoder.encode(password))
+                .email(email)
+                .phoneNumber(phoneNumber)
+                .address(address)
                 .build(); // 기본 roles값은 USER
 
         userRepository.save(user);
         return new UserResponse(username, "회원 가입 성공");
     }
 
-    public AccessTokenAndRefreshTokenResponse login(UserRequest userRequest, HttpServletResponse response) {
-        String username = userRequest.getUsername();
-        String password = userRequest.getPassword();
+    public AccessTokenAndRefreshTokenResponse login(UserLoginRequest userLoginRequest, HttpServletResponse response) {
+        String username = userLoginRequest.getUsername();
+        String password = userLoginRequest.getPassword();
         try {
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(username, password);
             Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
@@ -74,39 +78,38 @@ public class UserService {
             // 리프레시 토큰 저장
             refreshTokenService.saveRefreshToken(username, refreshToken, getRefreshTokenExpiration());
 
+            // httponly 쿠키 발급
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(true)
                     .path("/")
-                    .maxAge(accessTokenValidTime)
-                    .sameSite("Lax")
+                    .maxAge(jwtTokenProperties.getAccessValidTime())
+                    .sameSite("None")
                     .build();
 
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(true)
                     .path("/")
-                    .maxAge(refreshTokenValidTime) // 7일
-                    .sameSite("Lax")
+                    .maxAge(jwtTokenProperties.getRefreshValidTime()) // 7일
+                    .sameSite("None")
                     .build();
 
 
-            response.setHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+            // 헤더에 쿠키를 저장
+            response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
-            AccessTokenAndRefreshTokenResponse accessTokenAndRefreshTokenResponse = AccessTokenAndRefreshTokenResponse.builder()
+            return AccessTokenAndRefreshTokenResponse.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .build();
-            return accessTokenAndRefreshTokenResponse;
 
         } catch (AuthenticationException e) {
             throw new BadCredentialsException("아이디 또는 비밀번호가 올바르지 않습니다.", e);
         }
 
     }
-
-    
 
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         log.info("로그아웃 시작");
@@ -119,29 +122,35 @@ public class UserService {
 
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", null)
                 .httpOnly(true)
-                .secure(false) // https 시 true
+                .secure(true) // https 시 true
                 .path("/")
                 .maxAge(0)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
         log.info("엑세스 토큰 : {}", accessTokenCookie);
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", null)
                 .httpOnly(true)
-                .secure(false) // https 시 true
+                .secure(true) // https 시 true
                 .path("/")
                 .maxAge(0)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
         log.info("리프레시 토큰 : {}", refreshTokenCookie);
 
-        response.setHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
         log.info("토큰을 헤더에 삽입");
         return "로그아웃 됨";
     }
+
+    public void changeProfile(String username, UserProfileRequest userProfileRequest) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
+        user.updateProfile(passwordEncoder.encode(userProfileRequest.getPassword()), userProfileRequest.getEmail(), userProfileRequest.getPhoneNumber(), userProfileRequest.getAddress());
+        userRepository.save(user);
+    }
     private long getRefreshTokenExpiration(){
-        // (현재시간 + 리프레시 토큰의 만료시간)를  (Unix 타임스탬프)초 단위로 변환
-        return Instant.now().plusMillis(refreshTokenValidTime).getEpochSecond();
+        return Instant.now().plusSeconds(jwtTokenProperties.getRefreshValidTime()).getEpochSecond();
     }
 
 }
+

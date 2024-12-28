@@ -5,8 +5,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.logintojwt.config.security.CustomUserDetailsService;
 import org.example.logintojwt.entity.RefreshToken;
-import org.example.logintojwt.entity.request.UserAndTokenRequest;
+import org.example.logintojwt.properties.JwtTokenProperties;
+import org.example.logintojwt.request.UserAndTokenRequest;
 import org.example.logintojwt.jwt.JwtProvider;
 import org.example.logintojwt.repository.RefreshTokenRepository;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +30,7 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProvider jwtProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtTokenProperties jwtTokenProperties;
 
     public void saveRefreshToken(String username, String token, Long expiration) {
         Optional<RefreshToken> checkToken = refreshTokenRepository.findByUsername(username);
@@ -53,16 +56,17 @@ public class RefreshTokenService {
             String username = jwtProvider.getUsername(refreshToken);
             if (validateRefreshToken(username, refreshToken)) {
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                // 이미 인증된 토큰을 가지고 있으므로 자격 증명이 필요없다
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                 String accessToken = jwtProvider.createAccessToken(authenticationToken);
 
                 ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
                         .httpOnly(true)
-                        .secure(false)
+                        .secure(true)
                         .path("/")
-                        .maxAge(13)
-                        .sameSite("Lax")
+                        .maxAge(jwtTokenProperties.getAccessValidTime())
+                        .sameSite("None")
                         .build();
                 response.setHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 
@@ -101,7 +105,7 @@ public class RefreshTokenService {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("refreshToken".equals(cookie.getName())) {
+                if ("refreshToken".equals(cookie.getName()) && cookie.getValue() != null) {
                     return cookie.getValue();
                 }
             }

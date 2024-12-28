@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
 
-    // UserRequest 유효성 검증 예외 처리
+    // UserLoginRequest 유효성 검증 예외 처리
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, List<String>>> handlerMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         Map<String, List<String>> messages = new HashMap<>();
@@ -47,3 +47,4 @@ public class GlobalExceptionHandler {
     // UsernameNotFoundException 불가능
 
 }
+

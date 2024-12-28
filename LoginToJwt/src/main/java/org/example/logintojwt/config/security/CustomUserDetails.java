@@ -1,4 +1,4 @@
-package org.example.logintojwt.service;
+package org.example.logintojwt.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.example.logintojwt.entity.User;
@@ -7,7 +7,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor

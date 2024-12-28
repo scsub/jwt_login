@@ -5,10 +5,10 @@ import lombok.*;
 
 import java.util.List;
 
-@Table(name = "`users`")
+@Table(name = "users")
 @Entity
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @ToString(exclude = "password")
 @EqualsAndHashCode(of = "id")
@@ -24,6 +24,15 @@ public class User {
     @Column(nullable = false)
     private String password; //Bcrypt 암호화
 
+    @Column(nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String phoneNumber;
+
+    @Column(nullable = false)
+    private String address;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
@@ -31,9 +40,23 @@ public class User {
     private List<Role> roles;
 
     @Builder
-    public User(String username, String password, List<Role> roles) {
+    public User(@NonNull String username, @NonNull String password, List<Role> roles, @NonNull String email, @NonNull String phoneNumber, @NonNull String address) {
         this.username = username;
         this.password = password;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
         this.roles = roles != null ? roles : List.of(Role.ROLE_USER);
     }
+
+    public void updateProfile(String password, String email, String phoneNumber, String address){
+        this.password = password;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+    }
 }
+
+
+
+
