@@ -1,3 +1,11 @@
+# 1.4
+유저 이름을 통해 users, refreshToken의 테이블에서 삭제
+가독성을 위해 엔드포인트를 유저와 인증으로 나누고
+restful api 원칙에 맞춰 엔드포인트 변경
+
+예외를 커스텀하고 GlobalExceptionHandler에서 처리하게 설정
+테스트 코드 가독성 좋게 수정 및 개선
+
 # 1.3
 https 적용하고 http로 요청시 https로 넘기도록 설정
 프로퍼티 파일을 @Value가 아닌 @ConfigurationProperties를 사용하여 클래스를 만들어 받도록 수정
