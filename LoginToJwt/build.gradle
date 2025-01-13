@@ -57,6 +57,9 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.6.0'
     testImplementation 'org.assertj:assertj-core:3.24.2'
 
+    //h2 - 통합 테스트에 사용
+    testRuntimeOnly 'com.h2database:h2'
+
     // @ConfigurationProperties 사용하기위해
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }

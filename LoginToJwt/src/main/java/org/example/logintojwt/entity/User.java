@@ -3,6 +3,7 @@ package org.example.logintojwt.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Table(name = "users")
@@ -46,7 +47,7 @@ public class User {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.address = address;
-        this.roles = roles != null ? roles : List.of(Role.ROLE_USER);
+        this.roles = roles != null ? new ArrayList<>(roles) : new ArrayList<>(List.of(Role.ROLE_USER));
     }
 
     public void updateProfile(String password, String email, String phoneNumber, String address){

@@ -35,11 +35,11 @@ class ProfileControllerTest {
                 .address("집주소")
                 .build();
 
-        doNothing().when(userService).changeProfile("testUsername", userProfileRequest);
+        doNothing().when(userService).changeProfile(userDetails, userProfileRequest);
 
         ResponseEntity<?> responseEntity = userController.editUserProfile(userProfileRequest, userDetails);
 
-        verify(userService, times(1)).changeProfile("testUsername", userProfileRequest);
+        verify(userService, times(1)).changeProfile(userDetails, userProfileRequest);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 

@@ -9,6 +9,7 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -44,8 +45,9 @@ public class SecurityConfig {
         // 예외 처리
         http.exceptionHandling(exception -> exception.authenticationEntryPoint(customAuthenticationEntryPoint));
 
-        // https 요구 설정
-        http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+        // https 리다이렉트 설정
+        // !!!!!!!!! 테스트 떄는 꺼놓기
+        //http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
 
         //브라이주거 항상 https를 사용하도록
         /*http.headers(headers -> headers
@@ -62,9 +64,8 @@ public class SecurityConfig {
         http.userDetailsService(customUserDetailsService);
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/login", "/api/signup","/api/reissue","api/page").permitAll()
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().permitAll());
+                .requestMatchers("/api/users/**", "/api/auth/**", "api/page").permitAll()
+                .anyRequest().authenticated());
 
         return http.build();
     }
