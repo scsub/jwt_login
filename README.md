@@ -1,5 +1,6 @@
 # 1.5
 카테고리 기능 추가
+https://velog.io/write?id=f4480813-633e-40dd-989a-aee752790c62
 
 # 1.4
 유저 이름을 통해 users, refreshToken의 테이블에서 삭제
