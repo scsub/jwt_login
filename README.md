@@ -1,10 +1,23 @@
+# 1.5
+카테고리 기능 추가
+https://velog.io/write?id=f4480813-633e-40dd-989a-aee752790c62
+
+# 1.4
+유저 이름을 통해 users, refreshToken의 테이블에서 삭제
+가독성을 위해 엔드포인트를 유저와 인증으로 나누고
+restful api 원칙에 맞춰 엔드포인트 변경
+
+예외를 커스텀하고 GlobalExceptionHandler에서 처리하게 설정
+테스트 코드 가독성 좋게 수정 및 개선
+https://velog.io/@cs315033/%ED%86%B5%ED%95%A9-%ED%85%8C%EC%8A%A4%ED%8A%B8-%EB%A1%9C%EA%B7%B8%EC%9D%B8
+
 # 1.3
 https 적용하고 http로 요청시 https로 넘기도록 설정
 프로퍼티 파일을 @Value가 아닌 @ConfigurationProperties를 사용하여 클래스를 만들어 받도록 수정
 회원 수정 기능 추가
 예외, request, contorlle 등 가독성 좋게 수정
 자주 사용하는 이름, 비밀번호 상속
-
+https://velog.io/@cs315033/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-2024.12.31-%EC%9C%A0%EC%A0%80-%ED%94%84%EB%A1%9C%ED%95%84-%EB%B3%80%EA%B2%BD-%EC%82%AD%EC%A0%9C
 
 # 1.2
 로그아웃 구현 및 엑서스 토큰이 받아지지 않는 부분 수정
