@@ -11,7 +11,7 @@ import org.example.logintojwt.exception.InvalidRefreshTokenException;
 import org.example.logintojwt.properties.JwtTokenProperties;
 import org.example.logintojwt.request.RefreshTokenRequest;
 import org.example.logintojwt.request.UserAndAccessTokenRequest;
-import org.example.logintojwt.jwt.JwtProvider;
+import org.example.logintojwt.config.security.JwtProvider;
 import org.example.logintojwt.repository.RefreshTokenRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;

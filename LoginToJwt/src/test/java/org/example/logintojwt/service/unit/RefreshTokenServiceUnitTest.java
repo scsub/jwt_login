@@ -1,4 +1,4 @@
-package org.example.logintojwt.service;
+package org.example.logintojwt.service.unit;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -6,11 +6,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.example.logintojwt.config.security.CustomUserDetailsService;
 import org.example.logintojwt.entity.RefreshToken;
 import org.example.logintojwt.exception.InvalidRefreshTokenException;
-import org.example.logintojwt.jwt.JwtProvider;
+import org.example.logintojwt.config.security.JwtProvider;
 import org.example.logintojwt.properties.JwtTokenProperties;
 import org.example.logintojwt.repository.RefreshTokenRepository;
 import org.example.logintojwt.request.RefreshTokenRequest;
 import org.example.logintojwt.request.UserAndAccessTokenRequest;
+import org.example.logintojwt.service.RefreshTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,15 +20,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;

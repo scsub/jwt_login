@@ -1,4 +1,4 @@
-package org.example.logintojwt.service;
+package org.example.logintojwt.service.unit;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,12 +10,13 @@ import org.example.logintojwt.request.RefreshTokenRequest;
 import org.example.logintojwt.request.UserLoginRequest;
 import org.example.logintojwt.request.UserProfileRequest;
 import org.example.logintojwt.request.UserRegistrationRequest;
-import org.example.logintojwt.response.AccessTokenAndRefreshTokenResponse;
 import org.example.logintojwt.response.LoginSuccessResponse;
 import org.example.logintojwt.response.UserResponse;
 import org.example.logintojwt.exception.UserAlreadyExistsException;
-import org.example.logintojwt.jwt.JwtProvider;
+import org.example.logintojwt.config.security.JwtProvider;
 import org.example.logintojwt.repository.UserRepository;
+import org.example.logintojwt.service.RefreshTokenService;
+import org.example.logintojwt.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

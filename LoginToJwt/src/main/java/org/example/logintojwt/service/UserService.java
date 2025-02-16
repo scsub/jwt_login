@@ -4,27 +4,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.logintojwt.config.security.CustomUserDetailsService;
-import org.example.logintojwt.entity.Role;
 import org.example.logintojwt.entity.User;
 import org.example.logintojwt.properties.JwtTokenProperties;
 import org.example.logintojwt.request.RefreshTokenRequest;
 import org.example.logintojwt.request.UserLoginRequest;
 import org.example.logintojwt.request.UserProfileRequest;
 import org.example.logintojwt.request.UserRegistrationRequest;
-import org.example.logintojwt.response.AccessTokenAndRefreshTokenResponse;
 import org.example.logintojwt.response.LoginSuccessResponse;
 import org.example.logintojwt.response.UserResponse;
 import org.example.logintojwt.exception.UserAlreadyExistsException;
-import org.example.logintojwt.jwt.JwtProvider;
+import org.example.logintojwt.config.security.JwtProvider;
 import org.example.logintojwt.repository.UserRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -157,6 +151,7 @@ public class UserService {
         userRepository.deleteByUsername(username);
         refreshTokenService.deleteRefreshToken(username);
     }
+
     private long getRefreshTokenExpiration(){
         return Instant.now().plusSeconds(jwtTokenProperties.getRefreshValidTime()).getEpochSecond();
     }

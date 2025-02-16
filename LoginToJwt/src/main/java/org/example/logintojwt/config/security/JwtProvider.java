@@ -1,4 +1,4 @@
-package org.example.logintojwt.jwt;
+package org.example.logintojwt.config.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

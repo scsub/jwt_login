@@ -3,13 +3,10 @@ package org.example.logintojwt.config.security;
 import lombok.RequiredArgsConstructor;
 import org.apache.catalina.connector.Connector;
 import org.example.logintojwt.exception.CustomAuthenticationEntryPoint;
-import org.example.logintojwt.jwt.JwtFilter;
-import org.springframework.boot.web.embedded.tomcat.TomcatReactiveWebServerFactory;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -49,7 +46,7 @@ public class SecurityConfig {
         // !!!!!!!!! 테스트 떄는 꺼놓기
         //http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
 
-        //브라이주거 항상 https를 사용하도록
+        //브라우저가 항상 https를 사용하도록
         /*http.headers(headers -> headers
                 .httpStrictTransportSecurity(hsts -> hsts
                         .maxAgeInSeconds(31536000) // 1년
@@ -64,7 +61,7 @@ public class SecurityConfig {
         http.userDetailsService(customUserDetailsService);
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/**", "/api/auth/**", "api/page").permitAll()
+                .requestMatchers("/api/users/**", "/api/auth/**", "api/page","api/categories/**", "api/products/**").permitAll()
                 .anyRequest().authenticated());
 
         return http.build();
