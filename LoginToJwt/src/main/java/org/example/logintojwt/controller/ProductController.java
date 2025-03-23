@@ -37,6 +37,12 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(productResponse);
     }
 
+    @GetMapping("/search") // ?query=물건이름  네이버에서 이렇게 사용
+    public ResponseEntity<?> searchProductsByName(@RequestParam String query) {
+        List<ProductResponse> productResponseList = productService.searchProductByName(query);
+        return ResponseEntity.status(HttpStatus.OK).body(productResponseList);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
         productService.updateProduct(id, productRequest);

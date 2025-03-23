@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Builder
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,17 +28,13 @@ public class Category {
     @JoinColumn(name = "parent_id")
     private Category parent;
 
+    @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "parent", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<Category> children = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "category")
     private List<Product> products = new ArrayList<>();
-
-    @Builder
-    public Category(String name, Category parent) {
-        this.name = name;
-        this.parent = parent;
-    }
 
     public void addChild(Category child) {
         children.add(child);
@@ -52,4 +49,6 @@ public class Category {
     public void updateCategoryName(String name) {
         this.name = name;
     }
+
+
 }

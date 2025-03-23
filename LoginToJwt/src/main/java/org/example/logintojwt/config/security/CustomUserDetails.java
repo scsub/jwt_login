@@ -19,7 +19,6 @@ public class CustomUserDetails implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority(role.name()))
                 .collect(Collectors.toList());
     }
-
     @Override
     public String getPassword() {
         return user.getPassword();
@@ -48,5 +47,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public Long getId() {
+        return user.getId();
     }
 }

@@ -7,7 +7,6 @@ import org.example.logintojwt.entity.Product;
 import org.example.logintojwt.exception.ProductNotFoundException;
 import org.example.logintojwt.repository.CategoryRepository;
 import org.example.logintojwt.repository.ProductRepository;
-import org.example.logintojwt.request.CategoryRequest;
 import org.example.logintojwt.request.ProductRequest;
 import org.example.logintojwt.response.ProductResponse;
 import org.springframework.stereotype.Service;
@@ -65,6 +64,14 @@ public class ProductService {
         Long categoryId = productRequest.getCategoryId();
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
         product.updateCategory(category);
+    }
+
+    public List<ProductResponse> searchProductByName(String name) {
+        List<Product> productList = productRepository.findByNameContaining(name);
+        List<ProductResponse> productResponseList = productList.stream()
+                .map(product -> ProductResponse.from(product))
+                .collect(Collectors.toList());
+        return productResponseList;
     }
 
     public void deleteProductById(Long id) {

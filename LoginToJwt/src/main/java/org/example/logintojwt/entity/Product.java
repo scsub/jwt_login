@@ -5,11 +5,15 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.logintojwt.request.ProductRequest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Builder
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,13 +34,26 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Builder
-    public Product(String name, String description, long price, long quantity,Category category) {
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.quantity = quantity;
-        this.category = category;
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImage> images = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviewList = new ArrayList<>();
+
+    public void addImage(ProductImage image) {
+        images.add(image);
+        image.updateProduct(this);
+    }
+
+    public void removeImage(ProductImage image) {
+        images.remove(image);
+        image.updateProduct(null);
+    }
+    public void addReview(Review review) {
+        reviewList.add(review);
+        review.updateProduct(this);
     }
 
     public void updatePrice(long price) {
@@ -56,6 +73,7 @@ public class Product {
     public void updateDescription(String description) {
         this.description = description;
     }
+
     public void updateName(String name) {
         this.name = name;
     }
@@ -67,6 +85,7 @@ public class Product {
         this.category = category;
         category.getProducts().add(this);
     }
+
     public void updateProduct(ProductRequest productRequest) {
         this.name = productRequest.getName();
         this.description = productRequest.getDescription();

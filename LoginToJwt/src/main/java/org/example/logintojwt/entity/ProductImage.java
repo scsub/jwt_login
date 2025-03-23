@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Entity
 @NoArgsConstructor
@@ -21,5 +20,10 @@ public class ProductImage {
     private String url;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
     private Product product;
+
+    public void updateProduct(Product product) {
+        this.product = product;
+    }
 }

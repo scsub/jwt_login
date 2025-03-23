@@ -1,5 +1,6 @@
 package org.example.logintojwt.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @Getter
 @ToString(exclude = "password")
 @EqualsAndHashCode(of = "id")
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,10 +40,15 @@ public class User {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private List<Role> roles;
+    private List<Role> roles = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviewList = new ArrayList<>();
+
 
     @Builder
-    public User(@NonNull String username, @NonNull String password, List<Role> roles, @NonNull String email, @NonNull String phoneNumber, @NonNull String address) {
+    public User(String username, String password, List<Role> roles, String email, String phoneNumber, String address) {
         this.username = username;
         this.password = password;
         this.email = email;
@@ -55,6 +62,11 @@ public class User {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.address = address;
+    }
+
+    public void addReview(Review review) {
+        reviewList.add(review);
+        review.updateUser(this);
     }
 }
 

@@ -7,6 +7,8 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -61,7 +63,9 @@ public class SecurityConfig {
         http.userDetailsService(customUserDetailsService);
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/**", "/api/auth/**", "api/page","api/categories/**", "api/products/**").permitAll()
+                .requestMatchers("/api/users/**", "/api/auth/**", "api/page","/api/categories/**","/api/products/**","/api/reviews/**").permitAll()
+                //.requestMatchers("").hasRole("USER")
+                //.requestMatchers("").hasRole("ADMIN")
                 .anyRequest().authenticated());
 
         return http.build();
@@ -101,5 +105,14 @@ public class SecurityConfig {
         connector.setRedirectPort(8443);
         return connector;
 
+    }
+
+    // ROLE_ADMIN이 ROLE_USER를 포함하도록 만듬
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+        String hierarchy = "ROLE_ADMIN > ROLE_USER";
+        roleHierarchy.setHierarchy(hierarchy);
+        return roleHierarchy;
     }
 }
