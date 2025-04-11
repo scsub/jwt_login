@@ -74,5 +74,11 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(CartItemNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlerCartItemNotFoundException(AuthenticationException e) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
 }
 

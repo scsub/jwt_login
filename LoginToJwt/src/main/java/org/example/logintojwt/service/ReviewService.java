@@ -2,6 +2,7 @@ package org.example.logintojwt.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.logintojwt.config.security.CustomUserDetails;
 import org.example.logintojwt.entity.Product;
 import org.example.logintojwt.entity.Review;
 import org.example.logintojwt.entity.User;
@@ -12,6 +13,7 @@ import org.example.logintojwt.repository.ProductRepository;
 import org.example.logintojwt.repository.ReviewRepository;
 import org.example.logintojwt.repository.UserRepository;
 import org.example.logintojwt.request.ReviewRequest;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +29,11 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
-    public ReviewRequest createReview(ReviewRequest reviewRequest) {
+    public ReviewRequest createReview(ReviewRequest reviewRequest, CustomUserDetails userDetails) {
+        Long userDetailsId = userDetails.getId();
+        if (userDetailsId!=reviewRequest.getUserId()) {
+            throw new UserNotFoundException("로그인한 유저ID와 제출 ID가 맞지않음");
+        }
         User user = userRepository.findById(reviewRequest.getUserId()).orElseThrow(() -> new UserNotFoundException("ID로 유저를 찾을수없음"));
         Product product = productRepository.findById(reviewRequest.getProductId()).orElseThrow(() -> new ProductNotFoundException("ID로 상품을 찾을수없음"));
         Review review = Review.from(reviewRequest, user, product);

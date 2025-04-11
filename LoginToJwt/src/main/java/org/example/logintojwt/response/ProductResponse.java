@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.logintojwt.entity.Product;
+import org.example.logintojwt.entity.ProductImage;
+import org.example.logintojwt.entity.Review;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -18,6 +22,8 @@ public class ProductResponse {
     private long price;
     private long quantity;
     private ProductCategoryResponse productCategoryResponse;
+    private List<Review> reviewList;
+    private List<ProductImage> productImageList;
 
     public static ProductResponse from(Product product) {
         return ProductResponse.builder()
@@ -27,6 +33,8 @@ public class ProductResponse {
                 .price(product.getPrice())
                 .quantity(product.getQuantity())
                 .productCategoryResponse(ProductCategoryResponse.from(product.getCategory()))
+                .reviewList(product.getReviewList())
+                .productImageList(product.getProductImageList())
                 .build();
     }
 }

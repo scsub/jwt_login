@@ -4,8 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.logintojwt.entity.Cart;
 import org.example.logintojwt.entity.User;
 import org.example.logintojwt.properties.JwtTokenProperties;
+import org.example.logintojwt.repository.CartRepository;
 import org.example.logintojwt.request.RefreshTokenRequest;
 import org.example.logintojwt.request.UserLoginRequest;
 import org.example.logintojwt.request.UserProfileRequest;
@@ -35,13 +37,13 @@ import java.time.Instant;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CartRepository cartRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final JwtTokenProperties jwtTokenProperties;
 
     public UserResponse signup(UserRegistrationRequest userRegistrationRequest) {
-
         String username = userRegistrationRequest.getUsername();
         String password = userRegistrationRequest.getPassword();
         String email = userRegistrationRequest.getEmail();
@@ -59,6 +61,14 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+
+        // 카트 생성
+        Cart cart = Cart.builder()
+                .user(user)
+                .build();
+        cartRepository.save(cart);
+        user.assignCart(cart);
+
         return new UserResponse(username, "회원 가입 성공");
     }
 

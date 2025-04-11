@@ -22,11 +22,11 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<?> createReview(@RequestBody ReviewRequest reviewRequest, @AuthenticationPrincipal CustomUserDetails userDetails) {
         // DTO를 통해 유저ID를 받는 방법과 UserDetail을 이용해서 유저ID를 받는 방법이있음
-        ReviewRequest request = reviewService.createReview(reviewRequest);
+        ReviewRequest request = reviewService.createReview(reviewRequest, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED).body(request);
     }
 
-    @GetMapping("/product/{productId}")
+    @GetMapping("/products/{productId}")
     public ResponseEntity<?> findAllReviewsByProductId(@PathVariable Long productId) {
         List<ReviewRequest> allReviewByProductId = reviewService.findAllReviewByProductId(productId);
         return ResponseEntity.status(HttpStatus.OK).body(allReviewByProductId);

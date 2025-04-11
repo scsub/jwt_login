@@ -4,15 +4,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.logintojwt.entity.Category;
 import org.example.logintojwt.entity.Product;
+import org.example.logintojwt.entity.ProductImage;
 import org.example.logintojwt.exception.ProductNotFoundException;
 import org.example.logintojwt.repository.CategoryRepository;
+import org.example.logintojwt.repository.ProductImageRepository;
 import org.example.logintojwt.repository.ProductRepository;
 import org.example.logintojwt.request.ProductRequest;
 import org.example.logintojwt.response.ProductResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -20,15 +29,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class ProductService {
+    @Value("${file.upload-dir}")
+    private String uploadDir;
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductImageRepository productImageRepository;
 
-    public ProductResponse createProduct(ProductRequest productRequest) {
-        Category category = categoryRepository.findById(productRequest.getCategoryId()).orElseThrow(() -> new IllegalArgumentException("이미 카테고리가 있음"));
+    public ProductResponse createProduct(ProductRequest productRequest, List<MultipartFile> files) {
+        Category category = categoryRepository.findById(productRequest.getCategoryId()).orElseThrow(() -> new IllegalArgumentException("카테고리가 없음"));
         Product product = Product.from(productRequest, category);
+        saveImages(product, files);
         productRepository.save(product);
-        ProductResponse productResponse = ProductResponse.from(product);
-        return productResponse;
+        return ProductResponse.from(product);
     }
 
     public List<ProductResponse> findAllProduct() {
@@ -76,5 +88,35 @@ public class ProductService {
 
     public void deleteProductById(Long id) {
         productRepository.deleteById(id);
+    }
+
+    private void saveImages(Product product, List<MultipartFile> files) {
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue; // 파일없으면 그 다음 파일로
+            String savedPath = storeFile(file); // 반환된 저장 경로
+
+            ProductImage image = ProductImage.builder()
+                    .url(savedPath)
+                    .product(product)
+                    .build();
+
+            productImageRepository.save(image);
+            product.addImage(image);
+        }
+    }
+
+    private String storeFile(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename(); // 파일 이름 추출
+        String extension = StringUtils.getFilenameExtension(originalFilename); // 그 이름으로 확장자 추출
+        String uuid = UUID.randomUUID().toString(); // UUID 생성
+        String fileName = uuid + "." + extension; // UUID + 확장자로 중복되지 않는 파일명 만들기
+
+        try {
+            Path path = Paths.get(uploadDir + fileName); // 폴더 경로에 파일을 저장 시킴 ex)  files/UUID.gif
+            file.transferTo(path.toFile());
+            return "/images/" + fileName; // 노출될 경로만 기록함
+        }catch (IOException e){
+            throw new RuntimeException("파일 저장 실패", e);
+        }
     }
 }

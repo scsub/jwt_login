@@ -63,7 +63,7 @@ public class SecurityConfig {
         http.userDetailsService(customUserDetailsService);
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/users/**", "/api/auth/**", "api/page","/api/categories/**","/api/products/**","/api/reviews/**").permitAll()
+                .requestMatchers("api/**","/api/users/**", "/api/auth/**", "api/page","/api/categories/**","/api/products/**","/api/reviews/**","/images/**","/api/carts/**").permitAll()
                 //.requestMatchers("").hasRole("USER")
                 //.requestMatchers("").hasRole("ADMIN")
                 .anyRequest().authenticated());

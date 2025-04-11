@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Builder
+
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,21 +34,43 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Builder.Default
+    @JsonIgnore
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImage> images = new ArrayList<>();
+    private List<Review> reviewList;
 
-    @Builder.Default
+    @JsonIgnore
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviewList = new ArrayList<>();
+    private List<ProductImage> productImageList;
+
+    @Builder
+    public Product(Long id, String name, String description, long price, long quantity, Category category) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.quantity = quantity;
+        this.category = category;
+        this.reviewList = new ArrayList<>();
+        this.productImageList = new ArrayList<>();
+    }
+
+    public static Product from(ProductRequest productRequest, Category category) {
+        return Product.builder()
+                .name(productRequest.getName())
+                .description(productRequest.getDescription())
+                .price(productRequest.getPrice())
+                .quantity(productRequest.getQuantity())
+                .category(category)
+                .build();
+    }
 
     public void addImage(ProductImage image) {
-        images.add(image);
+        productImageList.add(image);
         image.updateProduct(this);
     }
 
     public void removeImage(ProductImage image) {
-        images.remove(image);
+        productImageList.remove(image);
         image.updateProduct(null);
     }
     public void addReview(Review review) {
@@ -93,13 +115,5 @@ public class Product {
         this.quantity = productRequest.getQuantity();
     }
 
-    public static Product from(ProductRequest productRequest, Category category) {
-        return Product.builder()
-                .name(productRequest.getName())
-                .description(productRequest.getDescription())
-                .price(productRequest.getPrice())
-                .quantity(productRequest.getQuantity())
-                .category(category)
-                .build();
-    }
+
 }

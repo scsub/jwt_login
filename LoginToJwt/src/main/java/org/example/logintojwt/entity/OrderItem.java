@@ -8,27 +8,33 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
-public class ProductImage {
+public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String url;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
 
+    private Long quantity;
+    private Long price;
+
     @Builder
-    public ProductImage(String url, Product product) {
-        this.url = url;
+    public OrderItem(Long id, Order order, Product product, Long quantity, Long price) {
+        this.id = id;
+        this.order = order;
         this.product = product;
+        this.quantity = quantity;
+        this.price = price;
     }
 
-    public void updateProduct(Product product) {
-        this.product = product;
+    public void assignOrder(Order order) {
+        this.order = order;
     }
 }

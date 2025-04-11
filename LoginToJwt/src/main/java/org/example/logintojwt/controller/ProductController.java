@@ -7,8 +7,10 @@ import org.example.logintojwt.response.ProductResponse;
 import org.example.logintojwt.response.SuccessResponse;
 import org.example.logintojwt.service.ProductService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,8 +22,10 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<ProductResponse> addProduct(@RequestBody ProductRequest productRequest) {
-        ProductResponse productResponse = productService.createProduct(productRequest);
+    public ResponseEntity<ProductResponse> addProduct(
+            @RequestPart("data") ProductRequest productRequest,
+            @RequestPart("files") List<MultipartFile> files) {
+        ProductResponse productResponse = productService.createProduct(productRequest, files);
         return ResponseEntity.status(HttpStatus.CREATED).body(productResponse);
     }
 
@@ -49,7 +53,6 @@ public class ProductController {
         SuccessResponse successResponse = new SuccessResponse("상품 업데이트돰");
         return ResponseEntity.status(HttpStatus.OK).body(successResponse);
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable Long id) {

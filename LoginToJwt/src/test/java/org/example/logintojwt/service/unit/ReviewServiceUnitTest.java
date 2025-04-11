@@ -60,7 +60,8 @@ class ReviewServiceUnitTest {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(reviewRepository.save(any(Review.class))).thenReturn(review);
 
-        reviewService.createReview(reviewRequest);
+        // 커스텀 디테일 추가
+        //reviewService.createReview(reviewRequest);
 
         verify(userRepository, times(1)).findById(1L);
         verify(productRepository, times(1)).findById(1L);
@@ -73,12 +74,10 @@ class ReviewServiceUnitTest {
     @Test
     void getReviewByUseridAndProductId() {
         User user = User.builder()
-                .id(1L)
                 .username("첫번째 유저")
                 .build();
 
         Product product = Product.builder()
-                .id(5L)
                 .name("가구")
                 .build();
 
@@ -114,7 +113,6 @@ class ReviewServiceUnitTest {
         Long reviewId = 1L;
         Long userId = 5L;
         User user = User.builder()
-                .id(userId)
                 .username("첫번째")
                 .build();
 

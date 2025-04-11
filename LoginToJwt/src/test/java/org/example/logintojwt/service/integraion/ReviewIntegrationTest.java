@@ -1,16 +1,14 @@
 package org.example.logintojwt.service.integraion;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.logintojwt.entity.Category;
-import org.example.logintojwt.entity.Product;
-import org.example.logintojwt.entity.Review;
-import org.example.logintojwt.entity.User;
+import org.example.logintojwt.entity.*;
 import org.example.logintojwt.repository.CategoryRepository;
 import org.example.logintojwt.repository.ProductRepository;
 import org.example.logintojwt.repository.ReviewRepository;
 import org.example.logintojwt.repository.UserRepository;
 import org.example.logintojwt.request.ReviewRequest;
 import org.example.logintojwt.service.ReviewService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.annotation.Rollback;
@@ -81,6 +80,7 @@ public class ReviewIntegrationTest {
                 .email("miko@example.com")
                 .phoneNumber("01011111111")
                 .address("dioStreet")
+                .roles(List.of(Role.ROLE_USER))
                 .password(passwordEncoder.encode("3150"))
                 .build();
 
@@ -90,6 +90,7 @@ public class ReviewIntegrationTest {
                 .phoneNumber("01022222222")
                 .password(passwordEncoder.encode("3151"))
                 .address("jojoStreet")
+                .roles(List.of(Role.ROLE_USER))
                 .build();
 
         desk = Product.builder()
@@ -191,7 +192,7 @@ public class ReviewIntegrationTest {
     }
 
     @Test
-    @WithUserDetails("miko")
+    @WithUserDetails(value = "miko",setupBefore = TestExecutionEvent.TEST_EXECUTION) //
     void deleteReview() throws Exception {
         Long reviewId = mikoDeskReview.getId();
         mvc.perform(delete("/api/reviews/{reviewId}", reviewId))
