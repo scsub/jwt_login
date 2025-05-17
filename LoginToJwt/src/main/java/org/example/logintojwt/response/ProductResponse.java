@@ -19,11 +19,11 @@ public class ProductResponse {
     private Long id;
     private String name;
     private String description;
-    private long price;
-    private long quantity;
+    private Long price;
+    private Long quantity;
     private ProductCategoryResponse productCategoryResponse;
     private List<Review> reviewList;
-    private List<ProductImage> productImageList;
+    private List<ProductImageResponse> productImageList;
 
     public static ProductResponse from(Product product) {
         return ProductResponse.builder()
@@ -34,7 +34,7 @@ public class ProductResponse {
                 .quantity(product.getQuantity())
                 .productCategoryResponse(ProductCategoryResponse.from(product.getCategory()))
                 .reviewList(product.getReviewList())
-                .productImageList(product.getProductImageList())
+                .productImageList(ProductImageResponse.fromList(product.getProductImageList()))
                 .build();
     }
 }

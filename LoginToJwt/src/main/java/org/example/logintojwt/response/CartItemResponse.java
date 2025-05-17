@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.logintojwt.entity.CartItem;
+import org.example.logintojwt.entity.ProductImage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,14 +16,19 @@ import java.util.stream.Collectors;
 @Builder
 public class CartItemResponse {
     private Long quantity;
-    private Long cartId;
+    private Long id;
     private Long productId;
+    private String productName;
+    private ProductImageResponse productImageResponse;
 
     public static CartItemResponse from(CartItem cartItem) {
         return CartItemResponse.builder()
                 .quantity(cartItem.getQuantity())
-                .cartId(cartItem.getId())
-                .productId(cartItem.getProduct().getId()).build();
+                .id(cartItem.getId())
+                .productId(cartItem.getProduct().getId())
+                .productName(cartItem.getProduct().getName())
+                .productImageResponse(ProductImageResponse.from(cartItem.getProduct().getProductImageList().get(0)))
+                .build();
     }
 
     public static List<CartItemResponse> fromList(List<CartItem> cartItems) {

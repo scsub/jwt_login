@@ -21,8 +21,9 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest orderRequest) {
-        orderService.createOrder(orderRequest);
+    public ResponseEntity<OrderResponse> createOrder(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getId();
+        orderService.createOrder(userId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -39,6 +40,12 @@ public class OrderController {
         Long userId = userDetails.getId();
         OrderResponse orderResponse = orderService.getOrder(orderId, userId);
         return ResponseEntity.ok().body(orderResponse);
+    }
+    @PatchMapping("/{orderId}")
+    public ResponseEntity<OrderResponse> cancelOrder(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long orderId) {
+        Long userId = userDetails.getId();
+        orderService.cancelOrder(orderId, userId);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{orderId}")

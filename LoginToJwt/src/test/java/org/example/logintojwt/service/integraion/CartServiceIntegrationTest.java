@@ -8,7 +8,7 @@ import org.example.logintojwt.entity.User;
 import org.example.logintojwt.repository.CartRepository;
 import org.example.logintojwt.repository.ProductRepository;
 import org.example.logintojwt.repository.UserRepository;
-import org.example.logintojwt.request.CartRequest;
+import org.example.logintojwt.request.CartItemRequest;
 import org.example.logintojwt.service.CartService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,12 +71,12 @@ public class CartServiceIntegrationTest {
 
     @Test
     void addItemInCart() throws Exception {
-        CartRequest.builder()
+        CartItemRequest.builder()
                 .productId(product.getId())
                 .quantity(10L)
                 .build();
 
-        //CartRequest.builder()
+        //CartItemRequest.builder()
         //objectMapper.writeValueAsString()
     }
 }

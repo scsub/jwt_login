@@ -40,13 +40,13 @@ public class User {
     @Column(name = "role")
     private List<Role> roles;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL)
     private List<Review> reviewList;
 
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cart cart;
 
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "user",cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY,mappedBy = "user",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Order> orderList;
 
     @Builder
@@ -63,8 +63,7 @@ public class User {
         this.orderList = new ArrayList<>();
     }
 
-    public void updateProfile(String password, String email, String phoneNumber, String address){
-        this.password = password;
+    public void updateProfile(String email, String phoneNumber, String address){
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.address = address;
@@ -90,6 +89,10 @@ public class User {
     public void removeOrder(Order order) {
         orderList.remove(order);
         order.assignUser(null);
+    }
+
+    public void changePassword(String password) {
+        this.password = password;
     }
 }
 

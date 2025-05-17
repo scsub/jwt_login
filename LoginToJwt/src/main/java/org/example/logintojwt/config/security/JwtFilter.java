@@ -28,10 +28,12 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = rev(request);
-
+        log.info("JWT token: {}", token);
         // 여기서 문제 생기면 CustomAuthenticationEntryPoint로 감
         try {
-            if (token != null && jwtProvider.validateToken(token)) {
+            log.info("필터 통과 전");
+            if (token != null && !token.isBlank() && jwtProvider.validateToken(token)) {
+                log.info("유효 통과");
                 String username = jwtProvider.getUsername(token);
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
                 if (userDetails != null) {
@@ -58,6 +60,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
         }
-        return "";
+        return null;
     }
 }

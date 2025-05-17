@@ -46,7 +46,7 @@ public class SecurityConfig {
 
         // https 리다이렉트 설정
         // !!!!!!!!! 테스트 떄는 꺼놓기
-        //http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+        http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
 
         //브라우저가 항상 https를 사용하도록
         /*http.headers(headers -> headers
@@ -63,9 +63,10 @@ public class SecurityConfig {
         http.userDetailsService(customUserDetailsService);
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("api/**","/api/users/**", "/api/auth/**", "api/page","/api/categories/**","/api/products/**","/api/reviews/**","/images/**","/api/carts/**").permitAll()
-                //.requestMatchers("").hasRole("USER")
-                //.requestMatchers("").hasRole("ADMIN")
+                .requestMatchers("/swagger-ui/**","/v3/**").permitAll()
+                .requestMatchers( "/api/auth/**","/api/categories/**","/api/products/**","/api/reviews/**","/images/**").permitAll()
+                .requestMatchers("/api/users/**","/api/carts/**").hasRole("USER")
+                .requestMatchers("admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated());
 
         return http.build();

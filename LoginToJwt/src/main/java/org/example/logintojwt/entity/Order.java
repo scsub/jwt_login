@@ -33,7 +33,8 @@ public class Order {
     private OrderStatus orderStatus;
 
     @Builder
-    public Order(User user,OrderStatus orderStatus) {
+    public Order(Long id, User user, OrderStatus orderStatus) {
+        this.id = id;
         this.user = user;
         this.orderItemList = new ArrayList<>();
         this.orderDate = LocalDateTime.now();
@@ -46,5 +47,9 @@ public class Order {
 
     public void assignUser(User user) {
         this.user = user;
+    }
+
+    public void changeOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }

@@ -8,7 +8,7 @@ import org.example.logintojwt.repository.CartItemRepository;
 import org.example.logintojwt.repository.CartRepository;
 import org.example.logintojwt.repository.ProductRepository;
 import org.example.logintojwt.repository.UserRepository;
-import org.example.logintojwt.request.CartRequest;
+import org.example.logintojwt.request.CartItemRequest;
 import org.example.logintojwt.response.CartResponse;
 import org.example.logintojwt.service.CartService;
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ class CartServiceUnitTest {
                 .build();
         user.assignCart(cart);
 
-        CartRequest cartRequest = CartRequest.builder()
+        CartItemRequest cartItemRequest = CartItemRequest.builder()
                 .productId(10L)
                 .quantity(5L)
                 .build();
@@ -72,7 +72,7 @@ class CartServiceUnitTest {
         when(cartItemRepository.save(any(CartItem.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        cartService.addItemInCart(userId, cartRequest);
+        cartService.addItemInCart(userId, cartItemRequest);
 
         verify(cartItemRepository, times(1)).save(any(CartItem.class));
         verify(cartRepository, times(1)).save(any(Cart.class));
@@ -128,7 +128,7 @@ class CartServiceUnitTest {
         CartItem cartItem = CartItem.builder()
                 .build();
         when(cartItemRepository.findById(cartItemId)).thenReturn(Optional.of(cartItem));
-        cartService.changeQuantity(cartItemId, 5L);
+        cartService.changeQuantity(cartItemId, 5L, 1L);
 
         verify(cartItemRepository, times(1)).findById(cartItemId);
     }

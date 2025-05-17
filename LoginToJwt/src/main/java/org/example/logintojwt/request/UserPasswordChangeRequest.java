@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CartRequest {
-    private Long productId;
-    private Long quantity;
+public class UserPasswordChangeRequest {
+    private String originalPassword;
+    private String newPassword;
+    private String confirmNewPassword;
 }

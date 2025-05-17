@@ -12,6 +12,8 @@
 /build
 
 # misc
+.env
+.env.* 
 .DS_Store
 .env.local
 .env.development.local
@@ -21,3 +23,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# 키
+*.pem
+*.key
+*.p12
+*.jks

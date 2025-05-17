@@ -1,8 +1,10 @@
 package org.example.logintojwt.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.logintojwt.config.security.CustomUserDetails;
-import org.example.logintojwt.request.CartRequest;
+import org.example.logintojwt.request.CartItemQuantityRequest;
+import org.example.logintojwt.request.CartItemRequest;
 import org.example.logintojwt.response.CartResponse;
 import org.example.logintojwt.service.CartService;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +18,15 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping("/items")
-    private ResponseEntity<?> addItemInCart(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CartRequest cartRequest) {
+    private ResponseEntity<?> addItemInCart(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody CartItemRequest cartItemRequest) {
         Long userId = userDetails.getId();
-        cartService.addItemInCart(userId,cartRequest);
+        cartService.addItemInCart(userId, cartItemRequest);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{userId}")
-    private ResponseEntity<?> getCart(@PathVariable Long userId) {
+    @GetMapping
+    private ResponseEntity<?> getCart(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getId();
         CartResponse cartResponse = cartService.getCartByUserId(userId);
         return ResponseEntity.ok(cartResponse);
     }
@@ -34,9 +37,12 @@ public class CartController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/items/{cartItemId}")
-    private ResponseEntity<?> changeItemQuantity(@PathVariable Long cartItemId, @RequestBody CartRequest cartRequest) {
-        cartService.changeQuantity(cartItemId, cartRequest.getQuantity());
+    @PatchMapping("/items/{cartItemId}")
+    private ResponseEntity<?> changeItemQuantity(@PathVariable Long cartItemId,
+                                                 @RequestBody @Valid CartItemQuantityRequest cartItemQuantityRequest,
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long id = userDetails.getId();
+        cartService.changeQuantity(cartItemId, cartItemQuantityRequest.getQuantity(), id);
         return ResponseEntity.ok().build();
     }
 }

@@ -21,4 +21,8 @@ public class UserRegistrationRequest extends BaseUserRequest {
     @NotBlank
     @Size(min = 2, max = 40, message = "제대로된 주소를 입력하세요")
     private String address;
+
+    @NotBlank
+    @Size(min = 6,max = 20, message = "비밀번호가 다릅니다")
+    private String passwordCheck;
 }

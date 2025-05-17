@@ -53,6 +53,7 @@ public class RefreshTokenService {
 
     public UserAndAccessTokenRequest accessTokenReissue(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = getRefreshToken(request);
+        log.info("Refresh token: {}", refreshToken);
         if (refreshToken != null && jwtProvider.validateToken(refreshToken)) {
             String username = jwtProvider.getUsername(refreshToken);
             if (validateRefreshToken(username, refreshToken)) {
@@ -78,10 +79,10 @@ public class RefreshTokenService {
 
                 return userAndAccessTokenRequest;
             } else {
-                throw new InvalidRefreshTokenException("리프레시 토큰이 유효하지 않음");
+                throw new InvalidRefreshTokenException("refreshToken","리프레시 토큰이 유효하지 않음");
             }
         } else {
-            throw new InvalidRefreshTokenException("리프레시 토큰이 만료되었거나 유효하지 않음");
+            throw new InvalidRefreshTokenException("refreshToken","리프레시 토큰이 만료되었거나 유효하지 않음");
         }
     }
 

@@ -25,9 +25,9 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.OK).body(parentCategory);
     }
 
-    @GetMapping("/{parentId}/children")
-    public ResponseEntity<List<CategoryResponse>> getChildrenCategories(@PathVariable Long parentId) {
-        List<CategoryResponse> childCategory = categoryService.findChildCategory(parentId);
+    @GetMapping("/{parentCategoryId}/children")
+    public ResponseEntity<List<CategoryResponse>> getChildrenCategories(@PathVariable Long parentCategoryId) {
+        List<CategoryResponse> childCategory = categoryService.findChildCategory(parentCategoryId);
         return ResponseEntity.status(HttpStatus.OK).body(childCategory);
     }
 
@@ -38,15 +38,15 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(successResponse);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getCategory(@PathVariable Long id) {
-        CategoryResponse categoryResponse = categoryService.findCategoryById(id);
+    @GetMapping("/{categoryId}")
+    public ResponseEntity<CategoryResponse> getCategory(@PathVariable Long categoryId) {
+        CategoryResponse categoryResponse = categoryService.findCategoryById(categoryId);
         return ResponseEntity.status(HttpStatus.OK).body(categoryResponse);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<SuccessResponse> deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategoryById(id);
+    @DeleteMapping("/{categoryId}")
+    public ResponseEntity<SuccessResponse> deleteCategory(@PathVariable Long categoryId) {
+        categoryService.deleteCategoryById(categoryId);
         SuccessResponse successResponse = new SuccessResponse("카테고리 삭제 완료");
         return ResponseEntity.status(HttpStatus.OK).body(successResponse);
     }

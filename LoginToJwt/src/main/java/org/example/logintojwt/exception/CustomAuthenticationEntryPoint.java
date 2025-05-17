@@ -14,7 +14,6 @@ import java.io.IOException;
 // AuthenticationException 혹은 인증되지 않은 사용자가 제한된 리소스에 접근하려할때 호출됨
 // 인증 실패 시의 처리 로직을 정의해야함
 // 인증되지 않은 요청이 들어오면 클라이언트에게 응답을 반환하여 인증이 필요하다고 알림
-
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
@@ -24,6 +23,5 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증이 필요");
         }
-
     }
 }

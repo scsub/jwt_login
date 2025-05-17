@@ -76,19 +76,25 @@ class OrderServiceUnitTest {
                 .product(mouse)
                 .build();
         deskOrder = Order.builder()
+                .id(1L)
                 .user(user)
+                .orderStatus(OrderStatus.ORDERED)
                 .build();
         mouseOrder = Order.builder()
+                .id(1L)
                 .user(user)
+                .orderStatus(OrderStatus.ORDERED)
                 .build();
         deskOrderItem = OrderItem.builder()
                 .id(1L)
+                .order(deskOrder)
                 .product(desk)
                 .price(100L)
                 .quantity(5L)
                 .build();
         mouseOrderItem = OrderItem.builder()
                 .id(2L)
+                .order(mouseOrder)
                 .product(mouse)
                 .price(200L)
                 .quantity(1L)
@@ -118,16 +124,18 @@ class OrderServiceUnitTest {
                 .id(1L)
                 .cart(cart)
                 .product(product)
+                .quantity(1L)
                 .build();
         cart.addCartItem(cartItem);
         user.assignCart(cart);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        orderService.createOrder(orderRequest);
+        orderService.createOrder(userId);
 
         verify(cartItemRepository).delete(cartItem);
         verify(orderRepository).save(any(Order.class));
 
+        assertThat(product.getQuantity()).isEqualTo(29L);
         assertThat(cart.getCartItems()).isEmpty();
     }
 
@@ -183,5 +191,22 @@ class OrderServiceUnitTest {
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository,times(1)).delete(deskOrder);
+    }
+
+    @Test
+    void cancelOrder() {
+        Long userId = 1L;
+        Long orderId = deskOrder.getId();
+
+        deskOrder.addOrderItem(deskOrderItem);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(deskOrder));
+
+        orderService.cancelOrder(deskOrder.getId(), userId);
+
+        assertThat(deskOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+        // 기본 10개고 주문서에 5개임
+        assertThat(desk.getQuantity()).isEqualTo(15L);
+
     }
 }

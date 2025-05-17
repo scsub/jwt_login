@@ -49,12 +49,12 @@ public class ProductService {
     }
 
     public ProductResponse findProductById(Long id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("상품을 찾을수 없음"));
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("id","상품을 찾을수 없음"));
         return ProductResponse.from(product);
     }
 
     public void updateProduct(Long id, ProductRequest productRequest) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("상품을 찾을수 없음"));
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("id","상품을 찾을수 없음"));
 
         if (productRequest.getName() != null) {
             product.updateName(productRequest.getName());
@@ -72,7 +72,7 @@ public class ProductService {
     }
 
     public void updateProductCategory(ProductRequest productRequest,Long id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("상품을 찾을수 없음"));
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("id","상품을 찾을수 없음"));
         Long categoryId = productRequest.getCategoryId();
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
         product.updateCategory(category);

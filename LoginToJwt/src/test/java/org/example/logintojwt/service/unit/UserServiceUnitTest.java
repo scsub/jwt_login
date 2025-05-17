@@ -2,14 +2,12 @@ package org.example.logintojwt.service.unit;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.assertj.core.api.Assertions;
 import org.example.logintojwt.config.security.CustomUserDetailsService;
 import org.example.logintojwt.entity.Role;
 import org.example.logintojwt.entity.User;
 import org.example.logintojwt.properties.JwtTokenProperties;
-import org.example.logintojwt.request.RefreshTokenRequest;
-import org.example.logintojwt.request.UserLoginRequest;
-import org.example.logintojwt.request.UserProfileRequest;
-import org.example.logintojwt.request.UserRegistrationRequest;
+import org.example.logintojwt.request.*;
 import org.example.logintojwt.response.LoginSuccessResponse;
 import org.example.logintojwt.response.UserResponse;
 import org.example.logintojwt.exception.UserAlreadyExistsException;
@@ -20,6 +18,7 @@ import org.example.logintojwt.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -72,6 +71,8 @@ class UserServiceUnitTest {
     @Mock
     private RefreshTokenRequest refreshTokenRequest;
 
+    @Captor
+    private ArgumentCaptor<String > headersCaptor;
     @Test
     void  successLogout(){
         String refreshToken = "refreshToken";
@@ -101,13 +102,20 @@ class UserServiceUnitTest {
     @Test
     void deleteUserAndRefreshToken() {
         User user = createUser();
-        UserDetails userDetails = mock(UserDetails.class);
-        when(userDetails.getUsername()).thenReturn("testUsername");
+        Long userId = 1L;
+        String username = "testUsername";
 
-        userService.deleteUser(userDetails);
+        userService.deleteUser(userId, username, response);
 
-        verify(refreshTokenService).deleteRefreshToken("testUsername");
-        verify(userRepository).deleteByUsername("testUsername");
+        verify(refreshTokenService).deleteRefreshToken(username);
+        verify(userRepository).deleteById(userId);
+        verify(response, times(2)).addHeader(eq(HttpHeaders.SET_COOKIE), headersCaptor.capture());
+        List<String> allValues = headersCaptor.getAllValues();
+        assertThat(allValues).hasSize(2);
+        assertThat(allValues)
+                .anyMatch(value -> value.startsWith("refreshToken="))
+                .anyMatch(value -> value.startsWith("accessToken="));
+
     }
 
     @Test
@@ -230,11 +238,10 @@ class UserServiceUnitTest {
 
     @Test
     void changeProfileTest(){
-
+        Long userId = 1L;
         String username = "testUsername";
         UserDetails userDetails = mock(UserDetails.class);
-        UserProfileRequest userProfileRequest = UserProfileRequest.builder()
-                .password("newPassword")
+        UserProfileUpdateRequest userProfileRequest = UserProfileUpdateRequest.builder()
                 .email("newnew@gmail.com")
                 .phoneNumber("01087654321")
                 .address("대전")
@@ -254,7 +261,7 @@ class UserServiceUnitTest {
         when(userRepository.findByUsername("testUsername")).thenReturn(Optional.of(user));
         when(passwordEncoder.encode("newPassword")).thenReturn("encodedPassword");
 
-        userService.changeProfile(userDetails, userProfileRequest);
+        userService.changeProfile(userId, userProfileRequest);
 
 
         assertEquals("encodedPassword", user.getPassword());
@@ -263,6 +270,31 @@ class UserServiceUnitTest {
         assertEquals("대전", user.getAddress());
 
         verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void changePasswordTest(){
+        Long userId = 1L;
+        String confirmNewPassword = "newPassword";
+        String newPassword = "newPassword";
+        String oldPassword = "encodedPassword";
+
+        User user = User.builder()
+                .id(userId)
+                .username("testUsername")
+                .password(oldPassword)
+                .email("test@example.com")
+                .phoneNumber("01012345678")
+                .address("서울")
+                .roles(List.of(Role.ROLE_USER))
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(oldPassword)).thenReturn("encodedPassword");
+        when(passwordEncoder.encode(newPassword)).thenReturn("newPassword");
+        userService.changePassword(userId, oldPassword, newPassword, confirmNewPassword);
+
+        assertThat(user.getPassword()).isEqualTo(newPassword);
     }
 
     private User createUser() {
@@ -312,7 +344,6 @@ class UserServiceUnitTest {
                 .build();
 
     }
-
 
 }
 

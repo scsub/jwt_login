@@ -108,12 +108,21 @@ public class Product {
         category.getProducts().add(this);
     }
 
+    public void minusQuantity(Long quantity) {
+        this.quantity -= quantity;
+    }
+
+    public void plusQuantity(Long quantity) {
+        this.quantity += quantity;
+    }
+
     public void updateProduct(ProductRequest productRequest) {
         this.name = productRequest.getName();
         this.description = productRequest.getDescription();
         this.price = productRequest.getPrice();
         this.quantity = productRequest.getQuantity();
     }
+
 
 
 }

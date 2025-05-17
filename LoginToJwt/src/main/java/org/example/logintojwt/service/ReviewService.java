@@ -29,13 +29,12 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
-    public ReviewRequest createReview(ReviewRequest reviewRequest, CustomUserDetails userDetails) {
-        Long userDetailsId = userDetails.getId();
-        if (userDetailsId!=reviewRequest.getUserId()) {
-            throw new UserNotFoundException("로그인한 유저ID와 제출 ID가 맞지않음");
+    public ReviewRequest createReview(ReviewRequest reviewRequest, Long userId) {
+        if (userId!=reviewRequest.getUserId()) {
+            throw new UserNotFoundException("id","로그인한 유저ID와 제출 ID가 맞지않음");
         }
-        User user = userRepository.findById(reviewRequest.getUserId()).orElseThrow(() -> new UserNotFoundException("ID로 유저를 찾을수없음"));
-        Product product = productRepository.findById(reviewRequest.getProductId()).orElseThrow(() -> new ProductNotFoundException("ID로 상품을 찾을수없음"));
+        User user = userRepository.findById(reviewRequest.getUserId()).orElseThrow(() -> new UserNotFoundException("id","ID로 유저를 찾을수없음"));
+        Product product = productRepository.findById(reviewRequest.getProductId()).orElseThrow(() -> new ProductNotFoundException("id","ID로 상품을 찾을수없음"));
         Review review = Review.from(reviewRequest, user, product);
 
         product.addReview(review);
@@ -62,7 +61,7 @@ public class ReviewService {
     }
 
     public void deleteReview(Long reviewId,Long userId) {
-        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewNotFoundException("ID로 리뷰를 찾을수없음"));
+        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewNotFoundException("id","리뷰를 찾을수없음"));
         if (review.getUser().getId().equals(userId)) {
             reviewRepository.deleteById(reviewId);
         } else {

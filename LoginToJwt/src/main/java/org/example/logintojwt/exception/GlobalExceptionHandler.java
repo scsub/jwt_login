@@ -2,6 +2,7 @@ package org.example.logintojwt.exception;
 
 import io.jsonwebtoken.JwtException;
 import org.example.logintojwt.response.ErrorResponse;
+import org.example.logintojwt.response.ValidationErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,17 +17,33 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    // 필드명 : 메시지 형식으로 통일
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handlerUserAlreadyExistsException(UserAlreadyExistsException e) {
-        ErrorResponse errorResponse = new ErrorResponse("이미 존재하는 아이디입니다");
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    public ResponseEntity<ValidationErrorResponse> handlerUserAlreadyExistsException(UserAlreadyExistsException e) {
+        Map<String, String> errors = Map.of(e.getField(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ValidationErrorResponse(errors));
     }
 
-    // UserLoginRequest 유효성 검증 예외 처리
+    //@Valid에서 검증 실패하면 이 예외처리가 사용된다
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationErrorResponse> handlerMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        Map<String, String> response = e.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
+        return ResponseEntity.badRequest().body(new ValidationErrorResponse(response));
+    }
+    @ExceptionHandler(DuplicatedProductException.class)
+    public ResponseEntity<ValidationErrorResponse> handlerDuplicatedProductException(DuplicatedProductException e) {
+        Map<String, String> errors = Map.of(e.getField(), e.getMessage());
+        return ResponseEntity.badRequest().body(new ValidationErrorResponse(errors));
+    }
+
+    //  <Map<String, List<String>>> 형태가 굳이 필요하지 않은것 같아서 잠가놓음
+    // UserLoginRequest 유효성 검증 예외 처리 ,@Valid
+/*    @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, List<String>>> handlerMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         Map<String, List<String>> messages = new HashMap<>();
         e.getBindingResult().getFieldErrors().forEach(error -> {
@@ -36,7 +53,7 @@ public class GlobalExceptionHandler {
         });
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(messages);
-    }
+    }*/
 
     @ExceptionHandler(JwtException.class)
     public ResponseEntity<?> handlerJwtException(JwtException e) {
@@ -44,41 +61,51 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handlerBadCredentialsException(BadCredentialsException e) {
-        ErrorResponse errorResponse = new ErrorResponse("아이디 혹은 비밀번호가 정확하지 않음");
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-
+    public ResponseEntity<ValidationErrorResponse> handlerBadCredentialsException(BadCredentialsException e) {
+        Map<String, String> response = Map.of("login", "아이디 혹은 비밀번호가 정확하지 않음");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ValidationErrorResponse(response));
     }
-    // UsernameNotFoundException 불가능
 
-    @ExceptionHandler(AuthenticationException.class)
+/*    @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handlerAuthenticationException(AuthenticationException e) {
         ErrorResponse errorResponse = new ErrorResponse("인증 오류 발생");
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
-    }
+    }*/
 
     @ExceptionHandler(InvalidRefreshTokenException.class)
-    public ResponseEntity<ErrorResponse> handlerInvalidRefreshTokenException(InvalidRefreshTokenException e) {
-        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ValidationErrorResponse> handlerInvalidRefreshTokenException(InvalidRefreshTokenException e) {
+        Map<String, String> response = Map.of(e.getField(), e.getMessage());
+        return ResponseEntity.badRequest().body(new ValidationErrorResponse(response));
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerUserNotFoundException(UserNotFoundException e) {
-        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    public ResponseEntity<ValidationErrorResponse> handlerUserNotFoundException(UserNotFoundException e) {
+        Map<String, String> response = Map.of(e.getField(), e.getMessage());
+        return ResponseEntity.badRequest().body(new ValidationErrorResponse(response));
     }
 
     @ExceptionHandler(ReviewNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerReviewNotFoundException(ReviewNotFoundException e) {
-        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    public ResponseEntity<ValidationErrorResponse> handlerReviewNotFoundException(ReviewNotFoundException e) {
+        Map<String, String> response = Map.of(e.getField(), e.getMessage());
+        return ResponseEntity.badRequest().body(new ValidationErrorResponse(response));
     }
 
     @ExceptionHandler(CartItemNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerCartItemNotFoundException(AuthenticationException e) {
-        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    public ResponseEntity<ValidationErrorResponse> handlerCartItemNotFoundException(CartItemNotFoundException e) {
+        Map<String, String> response = Map.of(e.getField(), e.getMessage());
+        return ResponseEntity.badRequest().body(new ValidationErrorResponse(response));
+    }
+
+    @ExceptionHandler(OutOfStockException.class)
+    public ResponseEntity<ValidationErrorResponse> handlerOutOfStockException(OutOfStockException e) {
+        Map<String, String> response = Map.of(e.getField(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ValidationErrorResponse(response));
+    }
+
+    @ExceptionHandler(NotSamePasswordException.class)
+    public ResponseEntity<?> handlerNotSamePasswordException(NotSamePasswordException e) {
+        Map<String, String> response = Map.of(e.getField(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ValidationErrorResponse(response));
     }
 }
 

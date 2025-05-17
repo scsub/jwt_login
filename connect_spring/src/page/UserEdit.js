@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { postLoginForm } from "../api/ApiService";
+import * as yup from "yup";
 
 function UserEdit() {
+    const schema = yup.object({
+        username: yup.string().min().max().required("아이디를 입력해주세요"),
+        password: yup.string().min().max().required("비밀번호를 입력해주세요"),
+    });
     const [user, setUser] = useState({
         username: "",
         password: "",

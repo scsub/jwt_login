@@ -6,13 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.logintojwt.entity.Cart;
 import org.example.logintojwt.entity.User;
+import org.example.logintojwt.exception.NotSamePasswordException;
 import org.example.logintojwt.properties.JwtTokenProperties;
 import org.example.logintojwt.repository.CartRepository;
-import org.example.logintojwt.request.RefreshTokenRequest;
-import org.example.logintojwt.request.UserLoginRequest;
-import org.example.logintojwt.request.UserProfileRequest;
-import org.example.logintojwt.request.UserRegistrationRequest;
+import org.example.logintojwt.request.*;
 import org.example.logintojwt.response.LoginSuccessResponse;
+import org.example.logintojwt.response.UserProfileResponse;
 import org.example.logintojwt.response.UserResponse;
 import org.example.logintojwt.exception.UserAlreadyExistsException;
 import org.example.logintojwt.config.security.JwtProvider;
@@ -33,7 +32,7 @@ import java.time.Instant;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(rollbackFor = Exception.class)
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -42,15 +41,18 @@ public class UserService {
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final JwtTokenProperties jwtTokenProperties;
-
     public UserResponse signup(UserRegistrationRequest userRegistrationRequest) {
         String username = userRegistrationRequest.getUsername();
         String password = userRegistrationRequest.getPassword();
         String email = userRegistrationRequest.getEmail();
         String phoneNumber = userRegistrationRequest.getPhoneNumber();
         String address = userRegistrationRequest.getAddress();
+        String passwordCheck = userRegistrationRequest.getPasswordCheck();
+        if (!passwordCheck.equals(password)) {
+            throw new NotSamePasswordException("passwordCheck","비밀번호가 일치하지않습니다");
+        }
         if (userRepository.findByUsername(username).isPresent()){
-            throw new UserAlreadyExistsException("이미 존재하는 아이디입니다");
+            throw new UserAlreadyExistsException("username", "이미 존재하는 아이디입니다");
         }
         User user = User.builder()
                 .username(username)
@@ -150,21 +152,49 @@ public class UserService {
         return "로그아웃 됨";
     }
 
-    public void changeProfile(UserDetails userDetails, UserProfileRequest userProfileRequest) {
-        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
-        user.updateProfile(passwordEncoder.encode(userProfileRequest.getPassword()), userProfileRequest.getEmail(), userProfileRequest.getPhoneNumber(), userProfileRequest.getAddress());
+    public void changeProfile(Long userId, UserProfileUpdateRequest userProfileUpdateRequest) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
+        user.updateProfile(userProfileUpdateRequest.getEmail(), userProfileUpdateRequest.getPhoneNumber(), userProfileUpdateRequest.getAddress());
         userRepository.save(user);
     }
 
-    public void deleteUser(UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        userRepository.deleteByUsername(username);
+    public void deleteUser(Long id, String username,HttpServletResponse response) {
+        userRepository.deleteById(id);
         refreshTokenService.deleteRefreshToken(username);
+        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", null)
+                .httpOnly(true)
+                .secure(true) // https 시 true
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", null)
+                .httpOnly(true)
+                .secure(true) // https 시 true
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
     }
 
     private long getRefreshTokenExpiration(){
         return Instant.now().plusSeconds(jwtTokenProperties.getRefreshValidTime()).getEpochSecond();
     }
 
+    public UserProfileResponse getUserProfile(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
+        return UserProfileResponse.from(user);
+    }
+
+    public void changePassword(Long userId, String oldPassword, String newPassword, String confirmNewPassword){
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
+        if (passwordEncoder.matches(oldPassword, user.getPassword()) && newPassword.equals(confirmNewPassword)) {
+            user.changePassword(passwordEncoder.encode(newPassword));
+        }else {
+            throw new IllegalStateException("비밀번호를 변경하지못함");
+        }
+    }
 }
 

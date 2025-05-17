@@ -25,6 +25,7 @@ public class ProductController {
     public ResponseEntity<ProductResponse> addProduct(
             @RequestPart("data") ProductRequest productRequest,
             @RequestPart("files") List<MultipartFile> files) {
+        log.info("데이터와 이미지 확인");
         ProductResponse productResponse = productService.createProduct(productRequest, files);
         return ResponseEntity.status(HttpStatus.CREATED).body(productResponse);
     }
@@ -35,9 +36,9 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(allProduct);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getProduct(@PathVariable Long id) {
-        ProductResponse productResponse = productService.findProductById(id);
+    @GetMapping("/{productId}")
+    public ResponseEntity<?> getProduct(@PathVariable Long productId) {
+        ProductResponse productResponse = productService.findProductById(productId);
         return ResponseEntity.status(HttpStatus.OK).body(productResponse);
     }
 
@@ -54,9 +55,9 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(successResponse);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
-        productService.deleteProductById(id);
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<?> deleteProduct(@PathVariable Long productId) {
+        productService.deleteProductById(productId);
         SuccessResponse successResponse = new SuccessResponse("상품 삭제됨");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(successResponse);
     }

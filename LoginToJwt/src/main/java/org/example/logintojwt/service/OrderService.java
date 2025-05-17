@@ -24,9 +24,8 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
 
-    public void createOrder(OrderRequest orderRequest) {
-        Long userId = orderRequest.getUserId();
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("유저를 찾을수 없음"));
+    public void createOrder(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("id","유저를 찾을수 없음"));
         Cart cart = user.getCart();
         if (cart == null) {
             throw new IllegalStateException("장바구니에 상품을 채워주세요");
@@ -38,7 +37,12 @@ public class OrderService {
         //카트에있는 아이템을 오더 아이템으로 바꾼후 오더에 넣기
         for (CartItem cartItem : cart.getCartItems()) {
             Product product = cartItem.getProduct();
-
+            //상품 갯수 감소
+            if (product.getQuantity() - cartItem.getQuantity() < 0L) {
+                throw new IllegalStateException("상품의 갯수가 부족합니다");
+            }
+            product.minusQuantity(cartItem.getQuantity());
+            //
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .product(product)
@@ -53,7 +57,7 @@ public class OrderService {
     }
 
     public List<OrderResponse> getAllOrders(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("유저를 찾을수 없음"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("id","유저를 찾을수 없음"));
         List<Order> orderList = user.getOrderList();
         return orderList.stream()
                 .map(order -> OrderResponse.from(order))
@@ -64,6 +68,16 @@ public class OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("주문을 찾을수없음"));
         if (order.getUser().getId().equals(userId)) {
             return OrderResponse.from(order);
+        }else {
+            throw new SecurityException("주문자 정보가 일치하지 않습니다");
+        }
+    }
+
+    public void cancelOrder(Long orderId, Long userId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("주문을 찾을수없음"));
+        if (order.getUser().getId().equals(userId)) {
+            order.changeOrderStatus(OrderStatus.CANCELED);
+            order.getOrderItemList().forEach(orderItem -> orderItem.getProduct().plusQuantity(orderItem.getQuantity()));
         }else {
             throw new SecurityException("주문자 정보가 일치하지 않습니다");
         }

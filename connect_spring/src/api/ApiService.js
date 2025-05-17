@@ -1,9 +1,11 @@
 import axios from "axios";
+import Product from "../page/Product";
 
 axios.defaults.withCredentials = true;
 
-const API_URL = "https://localhost:8443/api";
+const API_URL = "/api";
 
+//
 const api = axios.create({
     baseURL: API_URL,
     withCredentials: true, // 쿠키 허용
@@ -11,35 +13,30 @@ const api = axios.create({
 
 // 응답을 가로채서 401에러 발생시 토큰 재발급
 api.interceptors.response.use(
-    (response) => response, // 응답이 성공적이면 그대로 반환
+    (res) => res,
     async (error) => {
-        // config에는 요청 정보가 들어있음 url, method data 등
-        const originalRequest = error.config;
+        const { config, response } = error;
+        if (!response || response.status !== 401) return Promise.reject(error);
+        if (config._retry || config.url === "/auth/reissue")
+            return Promise.reject(error);
 
-        // 첫 에러 발생시 커스텀 _retry를 초기화 해줌
-        if (originalRequest._retry === undefined) {
-            originalRequest._retry = false;
-        }
+        config._retry = true;
 
-        // 에러 응답이 존재하며 코드가 401일때 + 재요청이 아닐때
-        if (error.response && error.response.status === 401 && !originalRequest._retry) {
-            // 동일 요청이 반복되지 않게 ture
-            originalRequest._retry = true;
-            try {
-                // 리프레시 토큰으로 액세스 토큰 재발급 요청
-                await api.post("/reissue");
-                // 재요청
-                return api(originalRequest);
-            } catch (refreshError) {
-                // 리프레시 토큰도 만료된 경우 로그아웃 처리
-                console.error("토큰 재발급 실패:", refreshError);
-                // 로그인 페이지로 리다이렉트
-                window.location.href = "/login";
-                return Promise.reject(refreshError);
+        try {
+            await api.post("/auth/reissue"); // ① refresh → access 재발급
+
+            /* ②  FormData 인 경우 다시 복사해서 넣어준다 */
+            if (config.data instanceof FormData) {
+                const newData = new FormData();
+                config.data.forEach((v, k) => newData.append(k, v));
+                config.data = newData;
             }
+
+            return api(config); // ③ 원‑요청 재시도
+        } catch (e) {
+            console.error("토큰 재발급 실패", e);
+            return Promise.reject(e);
         }
-        // 401이 아니거나 이미 재시도된 요청일 경우 에러 반환
-        return Promise.reject(error);
     }
 );
 
@@ -50,12 +47,79 @@ export const getMessage = async () => {
 };
 
 export const postLoginForm = async (user) => {
-    return (await api.post(`/login`, user)).data;
+    return await api.post(`/auth/login`, user);
 }; // 쿠키를 포함할수 있게된다 물론 cors의 allowCredentials 설정을 해줘야함
 
 export const signupPost = async (user) => {
-    return await api.post(`/signup`, user);
+    return await api.post(`/users/signup`, user);
 };
 export const logout = async () => {
-    return await api.post(`/logout`);
+    return await api.post(`/auth/logout`);
+};
+export const getProducts = async () => {
+    return await api.get(`/products`);
+};
+
+export const getProductById = async (id) => {
+    return await api.get(`/products/${id}`);
+};
+
+export const postAddItemInCart = async (id, quantity) => {
+    return await api.post(`/carts/items`, {
+        productId: id,
+        quantity: quantity,
+    });
+};
+
+export const getCartItems = async () => {
+    return await api.get(`/carts`);
+};
+
+export const postOrder = async () => {
+    return await api.post(`/orders`);
+};
+
+export const postRegistationProduct = async () => {
+    return await api.post(`/products`);
+};
+
+export const getCategories = async () => {
+    return await api.get(`/categories`);
+};
+
+export const deleteCartItem = async (cartItemId) => {
+    return await api.delete(`/carts/items/${cartItemId}`);
+};
+
+export const updateCartItem = async (cartItemId, quantity) => {
+    return await api.patch(`/carts/items/${cartItemId}`, {
+        quantity: quantity,
+    });
+};
+
+export const getUserProfile = async () => {
+    return await api.get(`/users/me`);
+};
+
+export const patchUserProfile = async (userProfile) => {
+    return await api.patch(`/users/me`, {
+        email: userProfile.email,
+        phoneNumber: userProfile.phoneNumber,
+        address: userProfile.address,
+    });
+};
+export const patchChangePassword = async (userPasswords) => {
+    return await api.patch(`/users/me/password`, {
+        originalPassword: userPasswords.originalPassword,
+        newPassword: userPasswords.newPassword,
+        confirmNewPassword: userPasswords.confirmNewPassword,
+    });
+};
+
+export const deleteUser = async () => {
+    return await api.delete(`users/me`);
+};
+
+export const createCategotyPost = async ({ name, parentId }) => {
+    return await api.post("categories", { name, parentId });
 };
