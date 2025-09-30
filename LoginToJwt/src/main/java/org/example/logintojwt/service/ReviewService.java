@@ -2,7 +2,6 @@ package org.example.logintojwt.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.logintojwt.config.security.CustomUserDetails;
 import org.example.logintojwt.entity.Product;
 import org.example.logintojwt.entity.Review;
 import org.example.logintojwt.entity.User;
@@ -13,7 +12,7 @@ import org.example.logintojwt.repository.ProductRepository;
 import org.example.logintojwt.repository.ReviewRepository;
 import org.example.logintojwt.repository.UserRepository;
 import org.example.logintojwt.request.ReviewRequest;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.example.logintojwt.response.ReviewResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,35 +28,31 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
-    public ReviewRequest createReview(ReviewRequest reviewRequest, Long userId) {
-        if (userId!=reviewRequest.getUserId()) {
-            throw new UserNotFoundException("id","로그인한 유저ID와 제출 ID가 맞지않음");
-        }
-        User user = userRepository.findById(reviewRequest.getUserId()).orElseThrow(() -> new UserNotFoundException("id","ID로 유저를 찾을수없음"));
+    public void createReview(ReviewRequest reviewRequest, Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("id","ID로 유저를 찾을수없음"));
         Product product = productRepository.findById(reviewRequest.getProductId()).orElseThrow(() -> new ProductNotFoundException("id","ID로 상품을 찾을수없음"));
         Review review = Review.from(reviewRequest, user, product);
 
         product.addReview(review);
         user.addReview(review);
         Review savedReview = reviewRepository.save(review);
-        return ReviewRequest.from(savedReview);
     }
 
-    public List<ReviewRequest>  findAllReviewByUserId(Long userId) {
+    public List<ReviewResponse>  findAllReviewByUserId(Long userId) {
         List<Review> reviewList = reviewRepository.findByUserId(userId);
-        List<ReviewRequest> reviewRequestList = reviewList.stream()
-                .map(review -> ReviewRequest.from(review))
+        List<ReviewResponse> reviewResponseList = reviewList.stream()
+                .map(review -> ReviewResponse.from(review))
                 .collect(Collectors.toList());
 
-        return reviewRequestList;
+        return reviewResponseList;
     }
 
-    public List<ReviewRequest> findAllReviewByProductId(Long productId) {
+    public List<ReviewResponse> findAllReviewByProductId(Long productId) {
         List<Review> reviewList = reviewRepository.findByProductId(productId);
-        List<ReviewRequest> reviewRequestList = reviewList.stream()
-                .map(review -> ReviewRequest.from(review))
+        List<ReviewResponse> reviewResponseList = reviewList.stream()
+                .map(review -> ReviewResponse.from(review))
                 .collect(Collectors.toList());
-        return reviewRequestList;
+        return reviewResponseList;
     }
 
     public void deleteReview(Long reviewId,Long userId) {

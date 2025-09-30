@@ -16,5 +16,4 @@ import org.hibernate.validator.constraints.Range;
 public class CartItemQuantityRequest {
     @Range(min = 1, max = 100, message = "최소1개 최대100개까지 주문 가능합니다")
     private Long quantity;
-    private Long originalQuantity;
 }

@@ -22,7 +22,6 @@ public class JwtProvider {
     private final JwtTokenProperties jwtTokenProperties;
     private Key key;
 
-
     @PostConstruct
     protected void init() {
         this.key = Keys.hmacShaKeyFor(jwtTokenProperties.getSecret().getBytes());
@@ -58,7 +57,6 @@ public class JwtProvider {
     }
 
     public boolean validateToken(String token) {
-        log.info("필터 안에 들어옴");
         try {
             Jwts.parserBuilder()
                     .setSigningKey(key)

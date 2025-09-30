@@ -20,7 +20,7 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long rating;
+    private Boolean recommend;
 
     private String content;
 
@@ -39,7 +39,7 @@ public class Review {
 
     public static Review from(ReviewRequest reviewRequest, User user, Product product) {
         return Review.builder()
-                .rating(reviewRequest.getRating())
+                .recommend(reviewRequest.getRecommend())
                 .content(reviewRequest.getContent())
                 .createdAt(LocalDateTime.now())
                 .user(user)

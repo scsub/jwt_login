@@ -13,6 +13,7 @@ import org.example.logintojwt.repository.UserRepository;
 import org.example.logintojwt.request.CartItemQuantityRequest;
 import org.example.logintojwt.request.CartItemRequest;
 import org.example.logintojwt.response.CartResponse;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ public class CartService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
+    @PreAuthorize("hasRole('USER')")
     public void addItemInCart(Long userId, CartItemRequest cartItemRequest) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("id","유저를 찾을수 없음"));
         user.getCart().getCartItems().forEach(
@@ -53,18 +55,21 @@ public class CartService {
         cartRepository.save(cart);
     }
 
+    @PreAuthorize("hasRole('USER')")
     public CartResponse getCartByUserId(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("id","유저를 찾을수 없음"));
         Cart cart = user.getCart();
         return CartResponse.from(cart);
     }
 
+    @PreAuthorize("hasRole('USER')")
     public void removeItemFromCart(Long cartItemId) {
         CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new CartItemNotFoundException("id","아이템을 카트에서 찾을수없음"));
         cartItem.getCart().removeCartItem(cartItem);
         cartItemRepository.delete(cartItem);
     }
 
+    @PreAuthorize("hasRole('USER')")
     public void changeQuantity(Long cartItemId,Long quantity, Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("user","유저를 찾을수 없음"));
         CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new CartItemNotFoundException("id","아이템을 카트에서 찾을수없음"));

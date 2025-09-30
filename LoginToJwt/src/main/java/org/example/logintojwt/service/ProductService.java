@@ -12,6 +12,7 @@ import org.example.logintojwt.repository.ProductRepository;
 import org.example.logintojwt.request.ProductRequest;
 import org.example.logintojwt.response.ProductResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -35,6 +36,7 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductImageRepository productImageRepository;
 
+    @PreAuthorize("hasRole('ADMIN')")
     public ProductResponse createProduct(ProductRequest productRequest, List<MultipartFile> files) {
         Category category = categoryRepository.findById(productRequest.getCategoryId()).orElseThrow(() -> new IllegalArgumentException("카테고리가 없음"));
         Product product = Product.from(productRequest, category);
@@ -53,6 +55,7 @@ public class ProductService {
         return ProductResponse.from(product);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void updateProduct(Long id, ProductRequest productRequest) {
         Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("id","상품을 찾을수 없음"));
 
@@ -71,12 +74,14 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void updateProductCategory(ProductRequest productRequest,Long id) {
         Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("id","상품을 찾을수 없음"));
         Long categoryId = productRequest.getCategoryId();
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
         product.updateCategory(category);
     }
+
 
     public List<ProductResponse> searchProductByName(String name) {
         List<Product> productList = productRepository.findByNameContaining(name);
@@ -86,8 +91,17 @@ public class ProductService {
         return productResponseList;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteProductById(Long id) {
         productRepository.deleteById(id);
+    }
+
+    public List<ProductResponse> getProductByCategoryId(Long categoryId) {
+        List<Product> productList = productRepository.findByCategoryId(categoryId);
+        List<ProductResponse> productResponseList = productList.stream().map(
+                product -> ProductResponse.from(product)
+        ).collect(Collectors.toList());
+        return productResponseList;
     }
 
     private void saveImages(Product product, List<MultipartFile> files) {
@@ -119,4 +133,7 @@ public class ProductService {
             throw new RuntimeException("파일 저장 실패", e);
         }
     }
+
+
+
 }

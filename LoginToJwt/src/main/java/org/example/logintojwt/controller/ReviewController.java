@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.logintojwt.config.security.CustomUserDetails;
 import org.example.logintojwt.request.ReviewRequest;
+import org.example.logintojwt.response.ReviewResponse;
 import org.example.logintojwt.service.ReviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,22 +22,23 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ResponseEntity<?> createReview(@RequestBody ReviewRequest reviewRequest, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Void> createReview(@RequestBody ReviewRequest reviewRequest, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long id = userDetails.getId();
-        ReviewRequest request = reviewService.createReview(reviewRequest, id);
-        return ResponseEntity.status(HttpStatus.CREATED).body(request);
+        log.debug(reviewRequest.toString());
+        reviewService.createReview(reviewRequest, id);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/products/{productId}")
-    public ResponseEntity<?> findAllReviewsByProductId(@PathVariable Long productId) {
-        List<ReviewRequest> allReviewByProductId = reviewService.findAllReviewByProductId(productId);
+    public ResponseEntity<List<ReviewResponse>> findAllReviewsByProductId(@PathVariable Long productId) {
+        List<ReviewResponse> allReviewByProductId = reviewService.findAllReviewByProductId(productId);
         return ResponseEntity.status(HttpStatus.OK).body(allReviewByProductId);
     }
 
     @GetMapping("/user")
-    public ResponseEntity<?> findAllReviewsByUserId(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<List<ReviewResponse>> findAllReviewsByUserId(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getId();
-        List<ReviewRequest> allReviewByUserId = reviewService.findAllReviewByUserId(userId);
+        List<ReviewResponse> allReviewByUserId = reviewService.findAllReviewByUserId(userId);
         return ResponseEntity.status(HttpStatus.OK).body(allReviewByUserId);
     }
 

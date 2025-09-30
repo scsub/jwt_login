@@ -9,6 +9,7 @@ import org.example.logintojwt.repository.OrderRepository;
 import org.example.logintojwt.repository.UserRepository;
 import org.example.logintojwt.request.OrderRequest;
 import org.example.logintojwt.response.OrderResponse;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
 
+    @PreAuthorize("hasRole('USER')")
     public void createOrder(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("id","유저를 찾을수 없음"));
         Cart cart = user.getCart();
@@ -56,6 +58,7 @@ public class OrderService {
         cart.getCartItems().clear();
     }
 
+    @PreAuthorize("hasRole('USER')")
     public List<OrderResponse> getAllOrders(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("id","유저를 찾을수 없음"));
         List<Order> orderList = user.getOrderList();
@@ -64,6 +67,7 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasRole('USER')")
     public OrderResponse getOrder(Long orderId, Long userId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("주문을 찾을수없음"));
         if (order.getUser().getId().equals(userId)) {
@@ -73,6 +77,7 @@ public class OrderService {
         }
     }
 
+    @PreAuthorize("hasRole('USER')")
     public void cancelOrder(Long orderId, Long userId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("주문을 찾을수없음"));
         if (order.getUser().getId().equals(userId)) {
@@ -83,6 +88,7 @@ public class OrderService {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteOrder(Long orderId, Long userId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("주문을 찾을수없음"));
         if (order.getUser().getId().equals(userId)) {

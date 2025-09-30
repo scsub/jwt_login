@@ -19,6 +19,7 @@ public class CartItemResponse {
     private Long id;
     private Long productId;
     private String productName;
+    private Long productPrice;
     private ProductImageResponse productImageResponse;
 
     public static CartItemResponse from(CartItem cartItem) {
@@ -27,6 +28,7 @@ public class CartItemResponse {
                 .id(cartItem.getId())
                 .productId(cartItem.getProduct().getId())
                 .productName(cartItem.getProduct().getName())
+                .productPrice(cartItem.getProduct().getPrice())
                 .productImageResponse(ProductImageResponse.from(cartItem.getProduct().getProductImageList().get(0)))
                 .build();
     }

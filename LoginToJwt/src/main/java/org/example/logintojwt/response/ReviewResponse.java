@@ -1,4 +1,4 @@
-package org.example.logintojwt.request;
+package org.example.logintojwt.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,18 +12,19 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ReviewRequest {
-    private Long productId;
+public class ReviewResponse {
     private Boolean recommend;
     private String content;
     private LocalDateTime createdAt;
+    private String username;
 
-    public static ReviewRequest from(Review review) {
-        return ReviewRequest.builder()
-                .productId(review.getProduct().getId())
+    public static ReviewResponse from(Review review){
+        return ReviewResponse.builder()
                 .recommend(review.getRecommend())
                 .content(review.getContent())
                 .createdAt(review.getCreatedAt())
+                .username(review.getUser().getUsername())
                 .build();
     }
+
 }

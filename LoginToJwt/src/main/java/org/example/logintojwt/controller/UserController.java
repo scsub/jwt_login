@@ -15,6 +15,7 @@ import org.example.logintojwt.response.UserResponse;
 import org.example.logintojwt.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,12 +25,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
-
-    @PostMapping("/signup")
-    public ResponseEntity<UserResponse> signup(@Valid @RequestBody UserRegistrationRequest userRegistrationRequest) {
-        UserResponse userResponse = userService.signup(userRegistrationRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
-    }
 
     @DeleteMapping("/me")
     public ResponseEntity<?> deleteUser(@AuthenticationPrincipal CustomUserDetails userDetails, HttpServletResponse response) {

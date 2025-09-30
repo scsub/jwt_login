@@ -35,6 +35,13 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
         return ResponseEntity.badRequest().body(new ValidationErrorResponse(response));
     }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ValidationErrorResponse> handlerUsernameNotFoundException(UsernameNotFoundException e) {
+        Map<String, String> response = Map.of("login", e.getMessage());
+        return ResponseEntity.badRequest().body(new ValidationErrorResponse(response));
+    }
+
     @ExceptionHandler(DuplicatedProductException.class)
     public ResponseEntity<ValidationErrorResponse> handlerDuplicatedProductException(DuplicatedProductException e) {
         Map<String, String> errors = Map.of(e.getField(), e.getMessage());

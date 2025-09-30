@@ -32,8 +32,12 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // mysql
+    //implementation 'com.mysql:mysql-connector-j'
+    // PostgreSQL
+    implementation 'org.postgresql:postgresql'
+
     // 롬복
-    runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
@@ -46,6 +50,8 @@ dependencies {
     //스웨거
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 
+    // 헬스 체크용
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

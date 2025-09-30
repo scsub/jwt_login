@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.logintojwt.entity.Cart;
 import org.example.logintojwt.entity.User;
 import org.example.logintojwt.exception.NotSamePasswordException;
+import org.example.logintojwt.exception.UserNotFoundException;
 import org.example.logintojwt.properties.JwtTokenProperties;
 import org.example.logintojwt.repository.CartRepository;
 import org.example.logintojwt.request.*;
@@ -18,6 +19,7 @@ import org.example.logintojwt.config.security.JwtProvider;
 import org.example.logintojwt.repository.UserRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -78,7 +80,9 @@ public class UserService {
         String username = userLoginRequest.getUsername();
         String password = userLoginRequest.getPassword();
 
+        // 아아디, 비밀번호를 담는 토큰 생성
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+        // 인증 매니저에 토큰을 전달하여 보낸 인증이 맞는지 체크
         Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 
         // 엑세스, 리프래시 토큰발급
@@ -115,11 +119,14 @@ public class UserService {
         response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
         return LoginSuccessResponse.builder()
                 .message("로그인 성공")
+                .role(user.getRoles())
                 .build();
     }
 
+    @PreAuthorize("hasRole('USER')")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         log.info("로그아웃 시작");
         String refreshToken = refreshTokenService.getRefreshToken(request);
@@ -152,12 +159,14 @@ public class UserService {
         return "로그아웃 됨";
     }
 
+    @PreAuthorize("hasRole('USER')")
     public void changeProfile(Long userId, UserProfileUpdateRequest userProfileUpdateRequest) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
         user.updateProfile(userProfileUpdateRequest.getEmail(), userProfileUpdateRequest.getPhoneNumber(), userProfileUpdateRequest.getAddress());
         userRepository.save(user);
     }
 
+    @PreAuthorize("hasRole('USER')")
     public void deleteUser(Long id, String username,HttpServletResponse response) {
         userRepository.deleteById(id);
         refreshTokenService.deleteRefreshToken(username);
@@ -183,11 +192,13 @@ public class UserService {
         return Instant.now().plusSeconds(jwtTokenProperties.getRefreshValidTime()).getEpochSecond();
     }
 
+    @PreAuthorize("hasRole('USER')")
     public UserProfileResponse getUserProfile(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
         return UserProfileResponse.from(user);
     }
 
+    @PreAuthorize("hasRole('USER')")
     public void changePassword(Long userId, String oldPassword, String newPassword, String confirmNewPassword){
         User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
         if (passwordEncoder.matches(oldPassword, user.getPassword()) && newPassword.equals(confirmNewPassword)) {

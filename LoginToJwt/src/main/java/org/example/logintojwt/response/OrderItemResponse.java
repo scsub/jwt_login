@@ -15,17 +15,22 @@ import java.util.List;
 @Data
 public class OrderItemResponse {
     private Long orderId;
+    private String productName;
     private Long productId;
     private Long quantity;
     private Long price;
+    private ProductImageResponse productImageResponse;
+
 
     public static List<OrderItemResponse> fromList(List<OrderItem> orderItemList) {
         return orderItemList.stream()
                 .map(orderItem -> OrderItemResponse.builder()
                         .orderId(orderItem.getOrder().getId())
+                        .productName(orderItem.getProduct().getName())
                         .productId(orderItem.getProduct().getId())
                         .quantity(orderItem.getQuantity())
                         .price(orderItem.getPrice())
+                        .productImageResponse(ProductImageResponse.from(orderItem.getProduct().getProductImageList().get(0)))
                         .build()).toList();
     }
 }

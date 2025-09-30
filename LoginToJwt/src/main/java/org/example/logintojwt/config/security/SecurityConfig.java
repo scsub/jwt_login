@@ -7,6 +7,7 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -64,10 +65,11 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/swagger-ui/**","/v3/**").permitAll()
-                .requestMatchers( "/api/auth/**","/api/categories/**","/api/products/**","/api/reviews/**","/images/**").permitAll()
-                .requestMatchers("/api/users/**","/api/carts/**").hasRole("USER")
-                .requestMatchers("admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated());
+                .requestMatchers("/api/auth/**","/images/**").permitAll()
+                /*.requestMatchers(HttpMethod.GET,"/api/categories/**","/api/products/**").permitAll()
+                .requestMatchers("/api/carts/**").hasRole("USER")
+                .requestMatchers("admin/**","/api/categories/**","/api/products/**").hasRole("ADMIN")*/
+                .anyRequest().permitAll());
 
         return http.build();
     }

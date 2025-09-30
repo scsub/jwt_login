@@ -7,8 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.logintojwt.request.UserAndAccessTokenRequest;
 import org.example.logintojwt.request.UserLoginRequest;
+import org.example.logintojwt.request.UserRegistrationRequest;
 import org.example.logintojwt.response.SuccessResponse;
 import org.example.logintojwt.response.LoginSuccessResponse;
+import org.example.logintojwt.response.UserResponse;
 import org.example.logintojwt.service.RefreshTokenService;
 import org.example.logintojwt.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
+
+    @PostMapping("/signup")
+    public ResponseEntity<UserResponse> signup(@Valid @RequestBody UserRegistrationRequest userRegistrationRequest) {
+        UserResponse userResponse = userService.signup(userRegistrationRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
+    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginSuccessResponse> login(@Valid @RequestBody UserLoginRequest userLoginRequest, HttpServletResponse response) {

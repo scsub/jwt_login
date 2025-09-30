@@ -16,15 +16,15 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class OrderResponse {
-    private Long orderId;
-    private List<OrderItemResponse> orderItemList;
+    private Long id;
+    private List<OrderItemResponse> itemList;
     private LocalDateTime orderDate;
     private OrderStatus orderStatus;
 
     public static OrderResponse from(Order order) {
         return OrderResponse.builder()
-                .orderId(order.getId())
-                .orderItemList(OrderItemResponse.fromList(order.getOrderItemList()))
+                .id(order.getId())
+                .itemList(OrderItemResponse.fromList(order.getOrderItemList()))
                 .orderDate(order.getOrderDate())
                 .orderStatus(order.getOrderStatus())
                 .build();

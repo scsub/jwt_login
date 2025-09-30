@@ -8,6 +8,7 @@ import org.example.logintojwt.request.CartItemRequest;
 import org.example.logintojwt.response.CartResponse;
 import org.example.logintojwt.service.CartService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 

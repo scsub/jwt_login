@@ -27,31 +27,39 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = rev(request);
-        log.info("JWT token: {}", token);
+        String accessToken = getAccessTokenFromCookie(request);
+
+        // 토큰이 없다면 다음으로 넘긴다
+        if(accessToken==null || accessToken.isBlank()){
+            filterChain.doFilter(request,response);
+            return;
+        }
+
         // 여기서 문제 생기면 CustomAuthenticationEntryPoint로 감
         try {
-            log.info("필터 통과 전");
-            if (token != null && !token.isBlank() && jwtProvider.validateToken(token)) {
-                log.info("유효 통과");
-                String username = jwtProvider.getUsername(token);
+            if (jwtProvider.validateToken(accessToken)) {
+                String username = jwtProvider.getUsername(accessToken);
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-                if (userDetails != null) {
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                if (userDetails == null){
+                    return;
                 }
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+
             }
         } catch (ExpiredJwtException e) {
             log.info("엑세스 토큰 만료");
             request.setAttribute("exception", "expired"); // AuthenticationEntryPoint를 사용
+        }catch (Exception e){
+            log.info("JWT 처리중 알수없는 오류 발생");
         }
-
         filterChain.doFilter(request, response);
     }
 
     // 쿠키용
-    private String rev(HttpServletRequest request) {
+    private String getAccessTokenFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {

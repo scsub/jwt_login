@@ -6,6 +6,7 @@ import org.example.logintojwt.entity.Category;
 import org.example.logintojwt.repository.CategoryRepository;
 import org.example.logintojwt.request.CategoryRequest;
 import org.example.logintojwt.response.CategoryResponse;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
+    @PreAuthorize("hasRole('USER')")
     public void createCategory(String name, Long parentId) {
         Category category;
         if (parentId == null) { // 부모가 없음
@@ -36,12 +38,14 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
+
     public List<CategoryResponse> findAllCategories() {
         List<Category> categories = categoryRepository.findByParentIsNull();
         return categories.stream()
                 .map(CategoryResponse::from)
                 .collect(Collectors.toList());
     }
+
 
     public List<CategoryResponse> findChildCategory(Long parentId) {
         List<Category> categories = categoryRepository.findByParentId(parentId);
@@ -60,6 +64,7 @@ public class CategoryService {
         return CategoryResponse.from(category);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public CategoryResponse updateCategoryName(String updateName, Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
         category.updateCategoryName(updateName);
@@ -67,6 +72,7 @@ public class CategoryService {
         return CategoryResponse.from(category);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public CategoryResponse updateCategoryParent(Long parentId, Long id) {
         Category childCategory = categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
         Category newParentCategory = categoryRepository.findById(parentId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
@@ -82,11 +88,13 @@ public class CategoryService {
 
     // 삭제할때 자식 카테고리 까지 삭제된다
     //클라이언트에서 id를 받아올것
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteCategoryById(Long id) {
         categoryRepository.deleteById(id);
     }
 
     // 클라이언트에서 id주는 방법을 사용하지 못할경우 name을 받아 사용
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteCategoryByName(String name) {
         categoryRepository.deleteByName(name);
     }

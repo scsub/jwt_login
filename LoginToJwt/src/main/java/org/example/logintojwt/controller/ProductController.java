@@ -9,6 +9,7 @@ import org.example.logintojwt.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -60,5 +61,11 @@ public class ProductController {
         productService.deleteProductById(productId);
         SuccessResponse successResponse = new SuccessResponse("상품 삭제됨");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(successResponse);
+    }
+
+    @GetMapping("/category/{smallCategoryId}")
+    public ResponseEntity<?> getProductBySmallCategoryId(@PathVariable Long smallCategoryId) {
+        List<ProductResponse> productByCategory = productService.getProductByCategoryId(smallCategoryId);
+        return ResponseEntity.status(HttpStatus.OK).body(productByCategory);
     }
 }
