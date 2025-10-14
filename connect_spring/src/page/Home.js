@@ -1,38 +1,20 @@
-import { useNavigate } from "react-router-dom";
-import { logout } from "../api/ApiService";
+import { Link, useNavigate } from "react-router-dom";
+import { getCategories, logout } from "../api/ApiService";
+import { RootUrl } from "../components/path";
+import { useEffect, useState } from "react";
 
-function Home() {
-    const navigator = useNavigate();
-
-    const handleLogout = async (e) => {
-        e.preventDefault();
-        try {
-            console.log("로그아웃 실행");
-            await logout();
-            console.log("로그아웃 성공");
-        } catch (e) {
-            console.error("로그아웃 실패");
-        }
-    };
-    const goToProduct = (e) => {
-        e.preventDefault();
-        navigator("/product");
-    };
-
+export default function Home() {
     return (
-        <div>
-            <div>
-                <button onClick={handleLogout} className="">
-                    로그아웃
-                </button>
-            </div>
-            <div>
-                <button onClick={goToProduct} className="text-red-500">
-                    상품
-                </button>
-            </div>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#1d253d] text-gray-100 px-4">
+            {/* 메인 */}
+            <h1 className="text-3xl lg:text-4xl font-extrabold mb-3">ㅁㅁㅁ몰 프로젝트</h1>
+
+            {/* 딱히 이렇다할게 없다 */}
+            <nav className="flex flex-col items-center gap-4 text-lg">
+                <Link to="/product" className="hover:text-indigo-400 transition underline-offset-4 hover:underline">
+                    ▶ 상품 둘러보기
+                </Link>
+            </nav>
         </div>
     );
 }
-
-export default Home;

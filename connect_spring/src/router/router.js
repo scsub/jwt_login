@@ -1,18 +1,20 @@
 import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
+
 const Loading = <div>Loading....</div>;
-const LoginForm = lazy(() => import("../page/LoginForm.js"));
-const UserEdit = lazy(() => import("../page/UserEdit.js"));
-const Signup = lazy(() => import("../page/SignupForm.js"));
+const LoginForm = lazy(() => import("../page/login/LoginForm.js"));
+const Signup = lazy(() => import("../page/signup/SignupForm.js"));
 const HomePage = lazy(() => import("../page/Home.js"));
-const Product = lazy(() => import("../page/Product.js"));
+const Product = lazy(() => import("../page/product/Product.js"));
 const Layout = lazy(() => import("../components/Layout.js"));
-const ProductDetail = lazy(() => import("../page/ProductDetail.js"));
-const Cart = lazy(() => import("../page/Cart.js"));
-const ProductRegistraion = lazy(() => import("../page/ProductRegistration.js"));
-const MyPage = lazy(() => import("../page/MyPage.js"));
-const ChangePassword = lazy(() => import("../page/ChangePassword.js"));
-const CreateCategory = lazy(() => import("../page/CreateCategory.js"));
+const ProductDetail = lazy(() => import("../page/product/ProductDetail.js"));
+const Cart = lazy(() => import("../page/cart/Cart.js"));
+const ProductRegistraion = lazy(() => import("../page/product/ProductRegistration.js"));
+const MyPage = lazy(() => import("../page/user/MyPage.js"));
+const ChangePassword = lazy(() => import("../page/user/ChangePassword.js"));
+const CreateCategory = lazy(() => import("../page/category/CreateCategory.js"));
+const PurchaseList = lazy(() => import("../page/order/PurchaseList.js"));
+const CreateReview = lazy(() => import("../page/review/CreateReview.js"));
 const router = createBrowserRouter([
     {
         path: "/",
@@ -47,15 +49,6 @@ const router = createBrowserRouter([
                 ),
             },
             {
-                path: "edit",
-                element: (
-                    <Suspense fallback={Loading}>
-                        <UserEdit />
-                    </Suspense>
-                ),
-            },
-
-            {
                 path: "product",
                 element: (
                     <Suspense fallback={Loading}>
@@ -68,6 +61,14 @@ const router = createBrowserRouter([
                 element: (
                     <Suspense fallback={Loading}>
                         <ProductDetail />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "/product/:id/review",
+                element: (
+                    <Suspense fallback={Loading}>
+                        <CreateReview />
                     </Suspense>
                 ),
             },
@@ -108,6 +109,14 @@ const router = createBrowserRouter([
                 element: (
                     <Suspense fallback={Loading}>
                         <CreateCategory />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "/myPage/purchaseList",
+                element: (
+                    <Suspense fallback={Loading}>
+                        <PurchaseList />
                     </Suspense>
                 ),
             },

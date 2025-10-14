@@ -1,9 +1,9 @@
 import axios from "axios";
-import Product from "../page/Product";
+import Product from "../page/product/Product";
 
 axios.defaults.withCredentials = true;
 
-const API_URL = "/api";
+const API_URL = "https://localhost:8443/api";
 
 //
 const api = axios.create({
@@ -17,8 +17,7 @@ api.interceptors.response.use(
     async (error) => {
         const { config, response } = error;
         if (!response || response.status !== 401) return Promise.reject(error);
-        if (config._retry || config.url === "/auth/reissue")
-            return Promise.reject(error);
+        if (config._retry || config.url === "/auth/reissue") return Promise.reject(error);
 
         config._retry = true;
 
@@ -51,7 +50,7 @@ export const postLoginForm = async (user) => {
 }; // 쿠키를 포함할수 있게된다 물론 cors의 allowCredentials 설정을 해줘야함
 
 export const signupPost = async (user) => {
-    return await api.post(`/users/signup`, user);
+    return await api.post(`/auth/signup`, user);
 };
 export const logout = async () => {
     return await api.post(`/auth/logout`);
@@ -91,7 +90,7 @@ export const deleteCartItem = async (cartItemId) => {
     return await api.delete(`/carts/items/${cartItemId}`);
 };
 
-export const updateCartItem = async (cartItemId, quantity) => {
+export const patchCartItemQuantity = async (cartItemId, quantity) => {
     return await api.patch(`/carts/items/${cartItemId}`, {
         quantity: quantity,
     });
@@ -122,4 +121,36 @@ export const deleteUser = async () => {
 
 export const createCategotyPost = async ({ name, parentId }) => {
     return await api.post("categories", { name, parentId });
+};
+
+export const createProductPost = async (fd) => {
+    return await api.post("/products", fd);
+};
+
+export const getProductBySmallCategoryId = async (smallCategoryId) => {
+    return await api.get(`/products/category/${smallCategoryId}`);
+};
+
+export const getOrders = async () => {
+    return await api.get(`/orders`);
+};
+
+export const patchCancelOrder = async (orderId) => {
+    return await api.patch(`/orders/${orderId}`);
+};
+
+export const getSerchProduct = async (productName) => {
+    return await api.get(`/products/search`, { params: { query: productName } });
+};
+
+export const postCreateReview = async ({ productId, recommend, content }) => {
+    return await api.post(`reviews`, {
+        productId: productId,
+        recommend: recommend,
+        content: content,
+    });
+};
+
+export const getProductReviews = async (productId) => {
+    return await api.get(`reviews/products/${productId}`);
 };
