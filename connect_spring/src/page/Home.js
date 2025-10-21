@@ -7,7 +7,7 @@ export default function Home() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#1d253d] text-gray-100 px-4">
             {/* 메인 */}
-            <h1 className="text-3xl lg:text-4xl font-extrabold mb-3">ㅁㅁㅁ몰 프로젝트</h1>
+            <h1 className="text-3xl lg:text-4xl font-extrabold mb-3">ㅁㅁㅁ 프로젝트</h1>
 
             {/* 딱히 이렇다할게 없다 */}
             <nav className="flex flex-col items-center gap-4 text-lg">
