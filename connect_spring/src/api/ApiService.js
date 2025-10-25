@@ -3,9 +3,12 @@ import Product from "../page/product/Product";
 
 axios.defaults.withCredentials = true;
 
-const API_URL = "https://localhost:8443/api";
+const API_URL = process.env.REACT_APP_API_URL;
 
-//
+if (!API_URL) {
+    console.warn("API_URL이 설정되지 않음");
+}
+
 const api = axios.create({
     baseURL: API_URL,
     withCredentials: true, // 쿠키 허용
