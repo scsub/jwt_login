@@ -1,5 +1,6 @@
 import axios from "axios";
 import Product from "../page/product/Product";
+import * as url from "node:url";
 
 axios.defaults.withCredentials = true;
 
@@ -11,30 +12,41 @@ if (!API_URL) {
 
 const api = axios.create({
     baseURL: API_URL,
-    withCredentials: true, // 쿠키 허용
+    withCredentials: true, // 리프레시 토큰을 사용하기 위해 토큰을 허용시킴
 });
 
-// 응답을 가로채서 401에러 발생시 토큰 재발급
+// 401예외 발생시 리프레시 토큰으로 엑세스 토큰을 재발급 받은 후 다시 사용자의 요청을 처리
 api.interceptors.response.use(
-    (res) => res,
-    async (error) => {
-        const { config, response } = error;
-        if (!response || response.status !== 401) return Promise.reject(error);
-        if (config._retry || config.url === "/auth/reissue") return Promise.reject(error);
+    (res) => res, // 성공시 그냥 통과시킴
+    async (error) => { // 실패시 아래 코드 실행
+        const { config, response } = error; // config는 요청한 설정 정보, response는 상태코드 등이 담겨온다
 
+        // 검증
+        if (!response || response.status !== 401) return Promise.reject(error); // 401일때만 토큰 재발급해주는데 그게 아닐경우 걸러냄
+        // 무한 루프 방지 _retry 커스텀을 사용해  이미 시도를 했는지 체크하고 재발급 요청을 실패하면 다시 이곳으로 오는데 그 요청을
+        // 또 실패하면 또 이곳으로 오게되서 무한루프를 방지하기 위해 재발급 요청이 실패하면 예외를 던진다
+        const url = config.url;
+        const reissueURL = url.includes("/auth/reissue");
+        if (config._retry || reissueURL) return Promise.reject(error);
+
+        // 재발급을 위한 코드가 실행되면 _retry를 true로 만들어 루프시 위에서 걸림
         config._retry = true;
 
         try {
-            await api.post("/auth/reissue"); // ① refresh → access 재발급
+            // 토큰 재발급 이때 토큰은 httponly 쿠키로 이미 브라우저에 저장되어있어서 굳이 요청에 넣지않아도 된다
+            // 물론 프론트와 백에 쿠키설정 withCredentials와 allowCredentials등 을 설정해놔야한다
+            await api.post("/auth/reissue"); //
 
-            /* ②  FormData 인 경우 다시 복사해서 넣어준다 */
-            if (config.data instanceof FormData) {
+            // 토큰을 재발급받은 뒤
+            // 폼데이터를 사용하는 경우 재시도할때 원본 폼데이터가 비어있을수있으니 복제하여 사용함
+            if (config.data instanceof FormData) { // 폼데이터 인지 확인 JSON이면 복제하지 않음
                 const newData = new FormData();
                 config.data.forEach((v, k) => newData.append(k, v));
                 config.data = newData;
             }
 
-            return api(config); // ③ 원‑요청 재시도
+            // 재시도
+            return api(config);
         } catch (e) {
             console.error("토큰 재발급 실패", e);
             return Promise.reject(e);

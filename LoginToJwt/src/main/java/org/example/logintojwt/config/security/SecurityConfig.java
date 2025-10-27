@@ -82,8 +82,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.addAllowedOrigin("https://localhost:3000"); // 하용할 클라이언트 도메인
-        //corsConfiguration.addAllowedOriginPattern("http://localhost:3000"); //와일드카드 지원
+        corsConfiguration.addAllowedOrigin("https://localhost:3000"); // 로컬 도메인
+        corsConfiguration.addAllowedOrigin("https://jwt-login.pages.dev/"); // 배포용 도메인
         corsConfiguration.addAllowedMethod("*"); // HTTP 메서드
         corsConfiguration.addAllowedHeader("*"); // 헤더
         corsConfiguration.setAllowCredentials(true); // 자격증명 허용 httpOnly 쿠키를 받을수있다
