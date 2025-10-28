@@ -22,6 +22,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 @EnableMethodSecurity
 @EnableWebSecurity
 @Configuration
@@ -83,13 +85,19 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.addAllowedOrigin("https://localhost:3000"); // 로컬 도메인
-        corsConfiguration.addAllowedOrigin("https://jwt-login.pages.dev/"); // 배포용 도메인
+        corsConfiguration.addAllowedOrigin("https://jwt-login.pages.dev"); // 배포용 도메인
         corsConfiguration.addAllowedMethod("*"); // HTTP 메서드
         corsConfiguration.addAllowedHeader("*"); // 헤더
+
+        // 추가부분
+        corsConfiguration.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        corsConfiguration.setAllowedHeaders(List.of("*"));
+        corsConfiguration.setExposedHeaders(List.of("Set-Cookie","Location","Authorization"));
+
         corsConfiguration.setAllowCredentials(true); // 자격증명 허용 httpOnly 쿠키를 받을수있다
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**",corsConfiguration); // 서버의 api/ 경로에 대해서 설정 적용
+        source.registerCorsConfiguration("/**",corsConfiguration); // 서버의 api/ 경로에 대해서 설정 적용 /우선 전체로
         return source;
 
     }

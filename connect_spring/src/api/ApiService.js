@@ -1,6 +1,5 @@
 import axios from "axios";
 import Product from "../page/product/Product";
-import * as url from "node:url";
 
 axios.defaults.withCredentials = true;
 
