@@ -49,7 +49,7 @@ public class SecurityConfig {
 
         // https 리다이렉트 설정
         // !!!!!!!!! 테스트 떄는 꺼놓기
-        http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+        //http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
 
         //브라우저가 항상 https를 사용하도록
         /*http.headers(headers -> headers
@@ -66,6 +66,7 @@ public class SecurityConfig {
         http.userDetailsService(customUserDetailsService);
 
         http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 프리플라이트 통과
                 .requestMatchers("/swagger-ui/**","/v3/**").permitAll()
                 .requestMatchers("/api/auth/**","/images/**").permitAll()
                 /*.requestMatchers(HttpMethod.GET,"/api/categories/**","/api/products/**").permitAll()
@@ -93,7 +94,7 @@ public class SecurityConfig {
         corsConfiguration.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setExposedHeaders(List.of("Set-Cookie","Location","Authorization"));
-
+        corsConfiguration.setMaxAge(3600L);
         corsConfiguration.setAllowCredentials(true); // 자격증명 허용 httpOnly 쿠키를 받을수있다
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
