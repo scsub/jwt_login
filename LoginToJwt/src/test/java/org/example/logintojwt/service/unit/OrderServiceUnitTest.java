@@ -1,19 +1,21 @@
 package org.example.logintojwt.service.unit;
 
 import org.example.logintojwt.entity.*;
+import org.example.logintojwt.exception.UserNotFoundException;
 import org.example.logintojwt.repository.CartItemRepository;
 import org.example.logintojwt.repository.CartRepository;
 import org.example.logintojwt.repository.OrderRepository;
 import org.example.logintojwt.repository.UserRepository;
-import org.example.logintojwt.request.OrderRequest;
 import org.example.logintojwt.response.OrderResponse;
 import org.example.logintojwt.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +23,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 class OrderServiceUnitTest {
     @InjectMocks
     private OrderService orderService;
@@ -39,49 +41,68 @@ class OrderServiceUnitTest {
     private Cart cart;
     private CartItem deskCartItem;
     private CartItem mouseCartItem;
+    private Order order;
     private Order deskOrder;
     private Order mouseOrder;
     private OrderItem deskOrderItem;
     private OrderItem mouseOrderItem;
+    private Cart emptyCart;
     @BeforeEach
     void setUp() {
-        Long userId = 1L;
+        // 유저와 카트를 만들고 카드안에 상품 2개가 들어있는 상태
         user = User.builder()
-                .id(userId)
-                .build();
-        desk = Product.builder()
                 .id(1L)
-                .name("책상")
-                .price(100L)
-                .quantity(10L)
-                .build();
-        mouse = Product.builder()
-                .id(2L)
-                .name("마우스")
-                .price(200L)
-                .quantity(20L)
+                .username("requestUsername")
+                .password("encodedPassword")
+                .address("requestAddress")
+                .phoneNumber("01087654321")
+                .email("request@gmail.com")
                 .build();
         cart = Cart.builder()
                 .id(1L)
                 .user(user)
+                .build(); // cartItems 자동생성
+        emptyCart = Cart.builder()
+                .id(2L)
+                .user(user)
+                .build(); // cartItems 자동생성
+        // 상품
+        desk = Product.builder()
+                .id(1L)
+                .name("책상")
+                .description("빨간 책상")
+                .price(100L)
+                .quantity(10L)
+                .category(null)
                 .build();
+        mouse = Product.builder()
+                .id(2L)
+                .name("마우스")
+                .description("주황 마우스")
+                .price(200L)
+                .quantity(20L)
+                .category(null)
+                .build();
+        // 장바구니 아이템
         deskCartItem = CartItem.builder()
                 .id(1L)
                 .cart(cart)
                 .product(desk)
+                .quantity(10L)
                 .build();
         mouseCartItem = CartItem.builder()
                 .id(2L)
                 .cart(cart)
                 .product(mouse)
+                .quantity(20L)
                 .build();
         deskOrder = Order.builder()
-                .id(1L)
+                .id(2L)
                 .user(user)
                 .orderStatus(OrderStatus.ORDERED)
                 .build();
         mouseOrder = Order.builder()
-                .id(1L)
+                .id(3L)
                 .user(user)
                 .orderStatus(OrderStatus.ORDERED)
                 .build();
@@ -90,123 +111,212 @@ class OrderServiceUnitTest {
                 .order(deskOrder)
                 .product(desk)
                 .price(100L)
-                .quantity(5L)
+                .quantity(10L)
                 .build();
         mouseOrderItem = OrderItem.builder()
                 .id(2L)
                 .order(mouseOrder)
                 .product(mouse)
                 .price(200L)
-                .quantity(1L)
+                .quantity(20L)
                 .build();
+        user.assignCart(cart);
+        cart.addCartItem(deskCartItem);
+        cart.addCartItem(mouseCartItem);
+        deskOrder.addOrderItem(deskOrderItem);
+        mouseOrder.addOrderItem(mouseOrderItem);
     }
 
     @Test
+    @DisplayName("주문성공")
     void createOrder() {
-        Long userId = 1L;
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        //실행
+        orderService.createOrder(user.getId());
+        // 단순 검증
+        verify(userRepository, times(1)).findById(user.getId());
+        verify(cartItemRepository,times(1)).delete(deskCartItem);
+        verify(cartItemRepository,times(1)).delete(mouseCartItem);
+        // 오더 캡쳐
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+        verify(orderRepository).save(orderCaptor.capture());
+        Order orderCaptorValue = orderCaptor.getValue();
 
-        User user = User.builder()
-                .id(userId)
-                .build();
-        Product product = Product.builder()
-                .id(3L)
-                .price(300L)
-                .quantity(30L)
-                .build();
-        OrderRequest orderRequest = OrderRequest.builder()
-                .userId(user.getId())
-                .build();
-        Cart cart = Cart.builder()
-                .id(5L)
-                .user(user)
-                .build();
-        CartItem cartItem = CartItem.builder()
-                .id(1L)
-                .cart(cart)
-                .product(product)
-                .quantity(1L)
-                .build();
-        cart.addCartItem(cartItem);
-        user.assignCart(cart);
+        assertThat(orderCaptorValue.getUser()).isEqualTo(user);
+        assertThat(orderCaptorValue.getOrderItemList()).hasSize(2);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        orderService.createOrder(userId);
-
-        verify(cartItemRepository).delete(cartItem);
-        verify(orderRepository).save(any(Order.class));
-
-        assertThat(product.getQuantity()).isEqualTo(29L);
+        assertThat(mouse.getQuantity()).isEqualTo(0L);
+        assertThat(desk.getQuantity()).isEqualTo(0L);
         assertThat(cart.getCartItems()).isEmpty();
     }
-
     @Test
-    void getAllOrders() {
-        Long userId = 1L;
+    @DisplayName("재고 부족해서 주문실패")
+    void create_order_out_of_stock() {
+        desk.updateQuantity(1L); // 책상 재고를 낮춤
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        //
+        assertThatThrownBy(() -> orderService.createOrder(user.getId())).isInstanceOf(IllegalStateException.class);
+        //
+        verify(userRepository, times(1)).findById(user.getId());
+        verify(cartItemRepository,never()).delete(any(CartItem.class));
+        verify(orderRepository, never()).save(any(Order.class));
 
-        cart.addCartItem(deskCartItem);
-        cart.addCartItem(mouseCartItem);
-        user.assignCart(cart);
+    }
+    @Test
+    @DisplayName("주문 실패 유저를 찾을수없음")
+    void create_order_user_not_found() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+        // 실행
+        assertThatThrownBy(() -> orderService.createOrder(user.getId())).isInstanceOf(UserNotFoundException.class);
 
-        deskOrder.addOrderItem(deskOrderItem);
-        mouseOrder.addOrderItem(mouseOrderItem);
-        user.addOrder(deskOrder);
-        user.addOrder(mouseOrder);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        List<OrderResponse> orderResponseList = orderService.getAllOrders(userId);
-
-        verify(userRepository, times(1)).findById(userId);
-        assertThat(orderResponseList.size()).isEqualTo(2);
+        verify(userRepository, times(1)).findById(user.getId());
+        verify(cartItemRepository,never()).delete(any(CartItem.class));
+        verify(orderRepository, never()).save(any(Order.class));
     }
 
     @Test
-    void getOrder() {
-        Long userId = 1L;
-        cart.addCartItem(deskCartItem);
-        cart.addCartItem(mouseCartItem);
-        user.assignCart(cart);
-
-        deskOrder.addOrderItem(deskOrderItem);
-        mouseOrder.addOrderItem(mouseOrderItem);
-
+    @DisplayName("장바구니에 아이템없어서 주문실패")
+    void create_order_no_item_in_cart(){
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        user.assignCart(emptyCart); // 빈 카드 적용
+        // 실행
+        assertThatThrownBy(() -> orderService.createOrder(user.getId())).isInstanceOf(IllegalStateException.class);
+        // 검증
+        verify(userRepository, times(1)).findById(user.getId());
+        verify(cartItemRepository,never()).delete(any(CartItem.class));
+        verify(cartItemRepository,never()).delete(any(CartItem.class));
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+    @Test
+    @DisplayName("유저의 주문 가져오기")
+    void getAllOrders() {
         user.addOrder(deskOrder);
         user.addOrder(mouseOrder);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        // 실행
+        List<OrderResponse> orderResponseList = orderService.getAllOrders(user.getId());
+
+        verify(userRepository, times(1)).findById(user.getId());
+        assertThat(orderResponseList.size()).isEqualTo(2);
+    }
+    @Test
+    @DisplayName("유저의 주문 가져오기 실패 유저 없음")
+    void getAllOrders_user_not_found() {
+        user.addOrder(deskOrder);
+        user.addOrder(mouseOrder);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+        // 실행
+        assertThatThrownBy(() -> orderService.getAllOrders(user.getId()))
+                .isInstanceOf(UserNotFoundException.class);
+
+        verify(userRepository, times(1)).findById(user.getId());
+    }
+
+    @Test
+    @DisplayName("orderId와 userId로 주문 하나 가져오기")
+    void getOrder() {
         when(orderRepository.findById(deskOrder.getId())).thenReturn(Optional.of(deskOrder));
 
         OrderResponse orderResponse = orderService.getOrder(deskOrder.getId(), user.getId());
 
-        verify(userRepository, times(1)).findById(userId);
-        assertThat(orderResponse).isEqualTo(deskOrder.getId());
-        assertThat(orderResponse.getOrderItemList()).hasSize(1);
-        assertThat(orderResponse.getOrderItemList().get(0)).isEqualTo(deskOrderItem);
+        verify(orderRepository, times(1)).findById(deskOrder.getId());
+        assertThat(orderResponse.getUserId()).isEqualTo(user.getId());
+        assertThat(orderResponse.getItemList().get(0).getProductName()).isEqualTo(desk.getName());
     }
 
     @Test
-    void deleteOrder() {
-        Long userId = 1L;
-        Long orderId = deskOrder.getId();
-        deskOrder.assignUser(user);
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(deskOrder));
-        orderService.deleteOrder(orderId, userId);
+    @DisplayName("주문가져오려는데 해당 주문이없음")
+    void getOrder_order_not_found() {
+        when(orderRepository.findById(deskOrder.getId())).thenReturn(Optional.empty());
+        // 실행
+        assertThatThrownBy(() -> orderService.getOrder(deskOrder.getId(), user.getId()))
+                .isInstanceOf(IllegalArgumentException.class);
 
-        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, times(1)).findById(deskOrder.getId());
+    }
+
+    @Test
+    @DisplayName("주문은 있으나 유저가 해당유저가 아님")
+    void getOrder_user_not_found() {
+        when(orderRepository.findById(deskOrder.getId())).thenReturn(Optional.of(deskOrder));
+        // 실행
+        assertThatThrownBy(() -> orderService.getOrder(deskOrder.getId(), 999L))
+                .isInstanceOf(SecurityException.class);
+
+        verify(orderRepository, times(1)).findById(deskOrder.getId());
+    }
+
+    @Test
+    @DisplayName("유저의 주문 삭제")
+    void deleteOrder() {
+        when(orderRepository.findById(deskOrder.getId())).thenReturn(Optional.of(deskOrder));
+        // 실행
+        orderService.deleteOrder(deskOrder.getId(), user.getId());
+        // 검증
+        verify(orderRepository, times(1)).findById(deskOrder.getId());
         verify(orderRepository,times(1)).delete(deskOrder);
     }
 
     @Test
+    @DisplayName("유저 주문 삭제 불가 주문을 찾을수없음")
+    void deleteOrder_order_not_found() {
+        when(orderRepository.findById(deskOrder.getId())).thenReturn(Optional.empty());
+        // 실행
+        assertThatThrownBy(() -> orderService.deleteOrder(deskOrder.getId(), user.getId()))
+                .isInstanceOf(IllegalArgumentException.class);
+        // 검증
+        verify(orderRepository, times(1)).findById(deskOrder.getId());
+        verify(orderRepository, never()).delete(deskOrder);
+    }
+
+    @Test
+    @DisplayName("유저 주문 삭제 불가 유저 아이디로 유저를 찾을수없음")
+    void deleteOrder_user_not_found() {
+        Long notUserId = 999L;
+        when(orderRepository.findById(deskOrder.getId())).thenReturn(Optional.of(deskOrder));
+        // 실행
+        assertThatThrownBy(() -> orderService.deleteOrder(deskOrder.getId(), notUserId))
+                .isInstanceOf(SecurityException.class);
+        // 검증
+        verify(orderRepository, times(1)).findById(deskOrder.getId());
+        verify(orderRepository, never()).delete(deskOrder);
+    }
+    @Test
+    @DisplayName("주문 취소해서 DB에 ORDERED가 아닌 CANCELED로 바꾸기")
     void cancelOrder() {
-        Long userId = 1L;
-        Long orderId = deskOrder.getId();
-
-        deskOrder.addOrderItem(deskOrderItem);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(deskOrder));
-
-        orderService.cancelOrder(deskOrder.getId(), userId);
-
+        when(orderRepository.findById(deskOrder.getId())).thenReturn(Optional.of(deskOrder));
+        // 실행
+        orderService.cancelOrder(deskOrder.getId(), user.getId());
+        // 검증
+        verify(orderRepository, times(1)).findById(deskOrder.getId());
         assertThat(deskOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
-        // 기본 10개고 주문서에 5개임
-        assertThat(desk.getQuantity()).isEqualTo(15L);
+        assertThat(desk.getQuantity()).isEqualTo(20L); // 기본10개 있고 주문들어간게 10개이니 취소되면서 20개가된다
+    }
 
+    @Test
+    @DisplayName("주문 취소 불가 주문을 찾을수없음")
+    void cancel_order_order_not_found() {
+        when(orderRepository.findById(deskOrder.getId())).thenReturn(Optional.empty());
+        // 실행
+        assertThatThrownBy(() -> orderService.cancelOrder(deskOrder.getId(), user.getId()))
+                .isInstanceOf(IllegalArgumentException.class);
+        // 검증
+        verify(orderRepository, times(1)).findById(deskOrder.getId());
+        assertThat(deskOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDERED);
+        assertThat(desk.getQuantity()).isEqualTo(10L); // 주문 취소를 못해서 상품10개 그대로
+    }
+
+    @Test
+    @DisplayName("주문 취소 불가 유저 아이디로 유저를 찾을수없음")
+    void cancel_order_user_not_found() {
+        Long notUserId = 999L;
+        when(orderRepository.findById(deskOrder.getId())).thenReturn(Optional.of(deskOrder));
+        // 실행
+        assertThatThrownBy(() -> orderService.cancelOrder(deskOrder.getId(), notUserId))
+                .isInstanceOf(SecurityException.class);
+        // 검증
+        verify(orderRepository, times(1)).findById(deskOrder.getId());
+        assertThat(deskOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDERED);
+        assertThat(desk.getQuantity()).isEqualTo(10L); // 주문 취소를 못해서 상품10개 그대로
     }
 }

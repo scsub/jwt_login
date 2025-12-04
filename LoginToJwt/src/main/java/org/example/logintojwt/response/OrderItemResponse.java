@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.logintojwt.entity.Order;
 import org.example.logintojwt.entity.OrderItem;
+import org.example.logintojwt.entity.ProductImage;
 
 import java.util.List;
 
@@ -23,14 +24,23 @@ public class OrderItemResponse {
 
 
     public static List<OrderItemResponse> fromList(List<OrderItem> orderItemList) {
+
+
         return orderItemList.stream()
-                .map(orderItem -> OrderItemResponse.builder()
-                        .orderId(orderItem.getOrder().getId())
-                        .productName(orderItem.getProduct().getName())
-                        .productId(orderItem.getProduct().getId())
-                        .quantity(orderItem.getQuantity())
-                        .price(orderItem.getPrice())
-                        .productImageResponse(ProductImageResponse.from(orderItem.getProduct().getProductImageList().get(0)))
-                        .build()).toList();
+                .map(orderItem -> {
+                    List<ProductImage> productImageList = orderItem.getProduct().getProductImageList();
+                    ProductImageResponse productImageResponse = new ProductImageResponse();
+                    if (productImageList != null && !productImageList.isEmpty()) {
+                        productImageResponse = ProductImageResponse.from(productImageList.get(0));
+                    }
+                    return OrderItemResponse.builder()
+                            .orderId(orderItem.getOrder().getId())
+                            .productName(orderItem.getProduct().getName())
+                            .productId(orderItem.getProduct().getId())
+                            .quantity(orderItem.getQuantity())
+                            .price(orderItem.getPrice())
+                            .productImageResponse(productImageResponse)
+                            .build();
+                }).toList();
     }
 }

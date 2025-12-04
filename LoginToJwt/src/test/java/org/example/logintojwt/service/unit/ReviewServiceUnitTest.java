@@ -40,9 +40,7 @@ class ReviewServiceUnitTest {
     @Test
     void createReview() {
         ReviewRequest reviewRequest = ReviewRequest.builder()
-                .userId(1L)
                 .productId(1L)
-                .rating(5L)
                 .content("상품 평가")
                 .build();
 
@@ -85,7 +83,6 @@ class ReviewServiceUnitTest {
                 .id(1L)
                 .user(user)
                 .product(product)
-                .rating(1L)
                 .content("나빠요")
                 .build();
 
@@ -93,7 +90,6 @@ class ReviewServiceUnitTest {
                 .id(2L)
                 .user(user)
                 .product(product)
-                .rating(5L)
                 .content("좋아요")
                 .build();
 

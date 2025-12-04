@@ -112,7 +112,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotSamePasswordException.class)
     public ResponseEntity<?> handlerNotSamePasswordException(NotSamePasswordException e) {
         Map<String, String> response = Map.of(e.getField(), e.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ValidationErrorResponse(response));
+        return ResponseEntity.badRequest().body(new ValidationErrorResponse(response));
     }
 }
 

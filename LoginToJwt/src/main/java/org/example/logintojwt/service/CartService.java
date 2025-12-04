@@ -70,8 +70,8 @@ public class CartService {
     }
 
     @PreAuthorize("hasRole('USER')")
-    public void changeQuantity(Long cartItemId,Long quantity, Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("user","유저를 찾을수 없음"));
+    public void changeQuantity(Long cartItemId,Long quantity, Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("user","유저를 찾을수 없음"));
         CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new CartItemNotFoundException("id","아이템을 카트에서 찾을수없음"));
         if (user.getCart().getCartItems().contains(cartItem)) {
             cartItem.changeQuantity(quantity);

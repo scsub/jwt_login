@@ -42,8 +42,8 @@ public class CartController {
     private ResponseEntity<?> changeItemQuantity(@PathVariable Long cartItemId,
                                                  @RequestBody @Valid CartItemQuantityRequest cartItemQuantityRequest,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long id = userDetails.getId();
-        cartService.changeQuantity(cartItemId, cartItemQuantityRequest.getQuantity(), id);
+        Long userId = userDetails.getId();
+        cartService.changeQuantity(cartItemId, cartItemQuantityRequest.getQuantity(), userId);
         return ResponseEntity.ok().build();
     }
 }

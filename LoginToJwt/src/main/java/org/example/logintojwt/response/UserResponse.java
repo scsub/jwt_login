@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserResponse {
     private String username;
-    private String message;
+    private Long userId;
 }

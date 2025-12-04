@@ -2,7 +2,6 @@ package org.example.logintojwt.service.unit;
 
 import org.example.logintojwt.entity.Category;
 import org.example.logintojwt.repository.CategoryRepository;
-import org.example.logintojwt.request.CategoryRequest;
 import org.example.logintojwt.response.CategoryResponse;
 import org.example.logintojwt.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,14 +10,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.*;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceUnitTest {
@@ -31,177 +28,225 @@ class CategoryServiceUnitTest {
     @Captor
     ArgumentCaptor<Category> categoryCaptor;
 
-
-    private Category firMajorCategory;
-    private Category secMajorCategory;
-    private Category firMiddleCategory;
-    private Category secMiddleCategory;
-    private Category firSmallCategory;
-    private Category secSmallCategory;
-
-    private String fMajorName = "대분류1";
-    private String sMajorName = "대분류2";
-    private String fcMiddleName = "중분류1";
-    private String scMiddleName = "중분류2";
-    private String fcSmallName = "소분류1";
-    private String scSmallName = "소분류2";
+    private Category major;
+    private Category middle;
+    private Category small;
+    private Category newMiddle;
+    private Category newSmall;
+    private Category newMajor;
+    private String majorName = "대분류";
+    private String middleName = "중분류";
+    private String smallName = "소분류";
+    private String newMiddleName = "새로운 중분류";
+    private String newSmallName = "새로운 소분류";
+    private String newMajorName = "새로운 대분류";
 
     @BeforeEach
     void setUp() {
-        firMajorCategory = Category.builder()
-                .name(fMajorName)
+        major = Category.builder()
+                .id(1L)
+                .name(majorName)
+                .parent(null)
                 .build();
 
-        secMajorCategory = Category.builder()
-                .name(sMajorName)
+        middle = Category.builder()
+                .id(2L)
+                .name(middleName)
+                .parent(major)
                 .build();
 
-        firMiddleCategory = Category.builder()
-                .name(fcMiddleName)
-                .parent(firMajorCategory)
+        small = Category.builder()
+                .id(3L)
+                .name(smallName)
+                .parent(middle)
+                .build();
+        major.addChild(middle);
+        middle.addChild(small);
+        newMajor = Category.builder()
+                .id(20L)
+                .name(newMajorName)
+                .parent(null)
                 .build();
 
-        secMiddleCategory = Category.builder()
-                .name(scMiddleName)
-                .parent(firMajorCategory)
-                .build();
-
-        firSmallCategory = Category.builder()
-                .name(fcSmallName)
-                .parent(firMiddleCategory)
-                .build();
-
-        secSmallCategory = Category.builder()
-                .name(scSmallName)
-                .parent(firMiddleCategory)
-                .build();
-
-        firMajorCategory.addChild(firMiddleCategory);
-        firMajorCategory.addChild(secMiddleCategory);
-
-        firMiddleCategory.addChild(firSmallCategory);
-        firMiddleCategory.addChild(secSmallCategory);
 
     }
 
     @Test
-    @DisplayName("대분류 카테고리 추가")
+    @DisplayName("대분류 카테고리 생성")
     void createCategoryWithNoParentTest() {
-        when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
-            Category category = invocation.getArgument(0, Category.class);
-            return new Category(1L, category.getName(), category.getParent(), category.getChildren(), category.getProducts());
-        });
-
-        categoryService.createCategory(fMajorName, null);
-
-        verify(categoryRepository).save(categoryCaptor.capture());
+        // 실행
+        categoryService.createCategory(majorName, null);
+        // 검증
+        verify(categoryRepository, times(1)).save(categoryCaptor.capture());
         Category savedCategory = categoryCaptor.getValue();
-        assertThat(fMajorName).isEqualTo(savedCategory.getName());
+        assertThat(savedCategory.getName()).isEqualTo(majorName);
         assertThat(savedCategory.getParent()).isNull();
     }
 
     @Test
-    @DisplayName("자식 카테고리 추가")
-    void createCategoryWithParentTest() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.ofNullable(firMajorCategory));
-        when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
-            Category category = invocation.getArgument(0, Category.class);
-            return new Category(2L, category.getName(), category.getParent(), category.getChildren(), category.getProducts());
-        });
+    @DisplayName("대분류에 중분류,중분류에 소분류 카테고리 추가")
+    void createCategoryWithParent() {
+        String newMiddleCategoryName = "새로운 중분류 카테고리";
+        String newSmallCategoryName = "새로운 소분류 카테고리";
 
-        categoryService.createCategory(fcMiddleName, 1L);
+        when(categoryRepository.findById(major.getId())).thenReturn(Optional.of(major));
+        when(categoryRepository.findById(middle.getId())).thenReturn(Optional.of(middle));
 
-        verify(categoryRepository).save(categoryCaptor.capture());
-        Category savedCategory = categoryCaptor.getValue();
-        assertThat(fcMiddleName).isEqualTo(savedCategory.getName());
-        assertThat(firMajorCategory.getChildren()).contains(savedCategory);
+        categoryService.createCategory(newMiddleCategoryName, major.getId());
+        categoryService.createCategory(newSmallCategoryName, middle.getId());
+
+        verify(categoryRepository, times(1)).findById(major.getId());
+        verify(categoryRepository, times(1)).findById(middle.getId());
+
+        verify(categoryRepository, times(2)).save(categoryCaptor.capture());
+        Category savedMiddle = categoryCaptor.getAllValues().get(0);
+        Category savedSmall = categoryCaptor.getAllValues().get(1);
+        assertThat(savedMiddle.getName()).isEqualTo(newMiddleCategoryName);
+        assertThat(savedSmall.getName()).isEqualTo(newSmallCategoryName);
+        assertThat(savedMiddle.getParent()).isEqualTo(major);
+        assertThat(savedSmall.getParent()).isEqualTo(middle);
     }
 
     @Test
-    @DisplayName("최상위 카테고리 찾기")
-    void findAllCategoriesTest() {
-        when(categoryRepository.findByParentIsNull()).thenReturn(List.of(firMajorCategory, secMajorCategory));
+    @DisplayName("부모가 없어서 카테고리 추가 못함")
+    void createCategoryWithParent_no_parent() {
+        Long notParentId = 999L;
+        String newMiddleCategoryName = "새로운 중분류 카테고리";
+        when(categoryRepository.findById(notParentId)).thenReturn(Optional.empty());
+        //
+        assertThatThrownBy(() -> categoryService.createCategory(newMiddleCategoryName, notParentId))
+                .isInstanceOf(IllegalArgumentException.class);
+        //
+        verify(categoryRepository).findById(notParentId);
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
 
+    @Test
+    @DisplayName("전체 카테고리 가져오기")
+    void find_all_category() {
+        Category secMajor = Category.builder()
+                .id(10L)
+                .parent(null)
+                .name("두번째 대분류")
+                .build();
+        when(categoryRepository.findByParentIsNull()).thenReturn(List.of(major, secMajor));
+        //
         List<CategoryResponse> allCategories = categoryService.findAllCategories();
-
-        verify(categoryRepository).findByParentIsNull();
+        //
+        verify(categoryRepository, times(1)).findByParentIsNull();
         assertThat(allCategories).hasSize(2);
-        assertThat(allCategories.get(0).getName()).isEqualTo(fMajorName);
-        assertThat(allCategories.get(1).getName()).isEqualTo(sMajorName);
-        assertThat(allCategories).isNotNull();
+        assertThat(allCategories.get(0).getName()).isEqualTo(majorName);
+        assertThat(allCategories.get(0).getChildren().get(0).getName()).isSameAs(middleName);
+        assertThat(allCategories.get(1).getName()).isEqualTo(secMajor.getName());
     }
 
     @Test
-    @DisplayName("아이디로 카테고리 찾기")
-    void findCategoryByIdTest() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.ofNullable(firMajorCategory));
-
-        CategoryResponse categoryResponse = categoryService.findCategoryById(1L);
-
-        verify(categoryRepository, times(1)).findById(1L);
-        assertThat(categoryResponse.getName()).isEqualTo(fMajorName);
+    @DisplayName("부모 카테고리 id로 자식 카테고리 가져오기")
+    void find_child_category() {
+        when(categoryRepository.findByParentId(major.getId())).thenReturn(List.of(middle));
+        //
+        List<CategoryResponse> childCategory = categoryService.findChildCategory(major.getId());
+        //
+        verify(categoryRepository, times(1)).findByParentId(major.getId());
+        assertThat(childCategory).hasSize(1);
+        assertThat(childCategory.get(0).getName()).isEqualTo(middleName);
     }
 
     @Test
-    @DisplayName("자식 카테고리 찾기")
-    void findChildCategoryTest() {
-        when(categoryRepository.findByParentId(1L)).thenReturn(List.of(firMiddleCategory, secMiddleCategory));
-
-        List<CategoryResponse> categories = categoryService.findChildCategory(1L);
-
-        assertThat(categories).hasSize(2);
-        verify(categoryRepository, times(1)).findByParentId(1L);
-        assertThat(categories.get(0).getName()).isEqualTo(fcMiddleName);
-        assertThat(categories.get(1).getName()).isEqualTo(scMiddleName);
+    @DisplayName("카테고리 id로 카테고리 하나만 가져오기")
+    void find_one_category_by_id() {
+        when(categoryRepository.findById(major.getId())).thenReturn(Optional.of(major));
+        //
+        CategoryResponse category = categoryService.findCategoryById(major.getId());
+        //
+        verify(categoryRepository, times(1)).findById(major.getId());
+        assertThat(category.getName()).isEqualTo(majorName);
     }
 
     @Test
-    @DisplayName("부모 카테고리 변경")
-    void changeParentCategoryTest() {
-        Category oldCategory = Category.builder()
-                .name("old")
-                .parent(null)
-                .build();
-        ReflectionTestUtils.setField(oldCategory, "id", 1L);
+    @DisplayName("카테고리 id로 카테고리를 찾지 못함")
+    void not_find_one_category_by_id() {
+        when(categoryRepository.findById(major.getId())).thenReturn(Optional.empty());
+        //
+        assertThatThrownBy(() -> categoryService.findCategoryById(major.getId())).isInstanceOf(IllegalArgumentException.class);
+        //
+        verify(categoryRepository, times(1)).findById(major.getId());
+    }
 
-        Category childCategory = Category.builder()
-                .name("child")
-                .parent(oldCategory)
-                .build();
-        ReflectionTestUtils.setField(oldCategory, "id", 3L);
+    @Test
+    @DisplayName("카테고리 이름으로 카테고리 찾기")
+    void find_one_category_by_name() {
+        when(categoryRepository.findByName(major.getName())).thenReturn(Optional.of(major));
+        //
+        CategoryResponse categoryByName = categoryService.findCategoryByName(majorName);
+        //
+        verify(categoryRepository, times(1)).findByName(major.getName());
+        assertThat(categoryByName.getName()).isEqualTo(majorName);
+    }
 
-        Category newCategory = Category.builder()
-                .name("new")
-                .parent(null)
-                .build();
-        ReflectionTestUtils.setField(oldCategory, "id", 2L);
-
-        when(categoryRepository.findById(3L)).thenReturn(Optional.of(childCategory));
-        when(categoryRepository.findById(2L)).thenReturn(Optional.of(newCategory));
-
-        CategoryResponse response = categoryService.updateCategoryParent(2L, 3L);
-
-        assertThat(childCategory.getParent()).isEqualTo(newCategory);
-        assertThat(newCategory.getChildren()).contains(childCategory);
-        assertThat(oldCategory.getChildren()).doesNotContain(childCategory);
+    @Test
+    @DisplayName("카테고리 이름으로 카테고리 찾지 못함")
+    void not_find_one_category_by_name() {
+        when(categoryRepository.findByName(major.getName())).thenReturn(Optional.empty());
+        //
+        assertThatThrownBy(() -> categoryService.findCategoryByName(major.getName())).isInstanceOf(IllegalArgumentException.class);
+        //
+        verify(categoryRepository, times(1)).findByName(major.getName());
     }
 
     @Test
     @DisplayName("카테고리 이름 변경")
-    void updateCategoryNameTest() {
-        Category category = Category.builder()
-                .name("변경전")
-                .parent(null)
-                .build();
-        setField(category, "id", 1L);
-
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-
-        categoryService.updateCategoryName("변경후", 1L);
-
-        verify(categoryRepository, times(1)).findById(1L);
+    void change_category_name() {
+        String newCategoryName = "newMajor";
+        when(categoryRepository.findById(major.getId())).thenReturn(Optional.of(major));
+        //
+        CategoryResponse majorResponse = categoryService.updateCategoryName(newCategoryName, major.getId());
+        //
+        verify(categoryRepository, times(1)).findById(major.getId());
         verify(categoryRepository, times(1)).save(categoryCaptor.capture());
-        Category savedCategory = categoryCaptor.getValue();
-        assertThat(savedCategory.getName()).isEqualTo("변경후");
+        Category savedMajor = categoryCaptor.getValue();
+        assertThat(savedMajor.getName()).isEqualTo(newCategoryName);
+        assertThat(majorResponse.getName()).isEqualTo(newCategoryName);
+    }
+
+    @Test
+    @DisplayName("카테고리 이름 변경 실패 카테고리를 찾지 못함")
+    void change_category_name_not_found_id() {
+        when(categoryRepository.findById(major.getId())).thenReturn(Optional.empty());
+        //
+        assertThatThrownBy(() -> categoryService.updateCategoryName("newMajor", major.getId()))
+                .isInstanceOf(IllegalArgumentException.class);
+        //
+        verify(categoryRepository, times(1)).findById(major.getId());
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
+
+    @Test
+    @DisplayName("카테고리의 부모 카테고리 변경 / 중분류가 대분류를 바꾸려는 상황")
+    void change_parent_category() {
+        when(categoryRepository.findById(middle.getId())).thenReturn(Optional.of(middle));
+        when(categoryRepository.findById(newMajor.getId())).thenReturn(Optional.of(newMajor));
+        //
+        CategoryResponse categoryResponse = categoryService.updateParentCategory(newMajor.getId(), middle.getId());
+        //
+        verify(categoryRepository, times(3)).save(categoryCaptor.capture());
+        List<Category> allValues = categoryCaptor.getAllValues();
+        assertThat(allValues).hasSize(3);
+        Category oldParentCategory = allValues.get(0);
+        Category childCategory = allValues.get(1);
+        Category newParentCategory = allValues.get(2);
+        assertThat(childCategory.getName()).isEqualTo(middle.getName());
+        assertThat(newParentCategory.getName()).isEqualTo(newMajor.getName());
+    }
+
+    @Test
+    @DisplayName("id로 카테고리 삭제")
+    void delete_category_by_id() {
+        when(categoryRepository.findById(major.getId())).thenReturn(Optional.of(major));
+        //
+        categoryService.deleteCategoryById(major.getId());
+        //
+        verify(categoryRepository, times(1)).findById(major.getId());
+        verify(categoryRepository, times(1)).deleteById(major.getId());
     }
 }

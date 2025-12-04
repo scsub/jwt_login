@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class LoginSuccessResponse {
-    private String message;
-    private List<Role> role;
+    private Long userId;
+    private List<Role> roles;
 
 }

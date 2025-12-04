@@ -113,26 +113,22 @@ public class ReviewIntegrationTest {
                 .product(desk)
                 .user(miko)
                 .content("4점 책상")
-                .rating(4L)
                 .build();
         mikoChairReview = Review.builder()
                 .product(chair)
                 .user(miko)
                 .content("4점 의자")
-                .rating(4L)
                 .build();
         noelDeskReview = Review.builder()
                 .product(desk)
                 .user(noel)
                 .content("3점 책상")
-                .rating(3L)
                 .build();
 
         noelChairReview = Review.builder()
                 .product(chair)
                 .user(noel)
                 .content("3점 의자")
-                .rating(3L)
                 .build();
         userRepository.save(miko);
         userRepository.save(noel);
@@ -147,9 +143,8 @@ public class ReviewIntegrationTest {
     @Test
     void createReview() throws Exception {
         ReviewRequest reviewRequest = ReviewRequest.builder()
-                .userId(miko.getId())
                 .productId(desk.getId())
-                .rating(5L)
+                .recommend(true)
                 .content("좋은 책상")
                 .build();
         String json = objectMapper.writeValueAsString(reviewRequest);
@@ -164,7 +159,7 @@ public class ReviewIntegrationTest {
         List<Review> reviewList = reviewRepository.findByUserId(miko.getId());
         assertThat(reviewList.size()).isEqualTo(3);
         assertThat(reviewList.get(2).getProduct()).isEqualTo(desk);
-        assertThat(reviewList.get(2).getRating()).isEqualTo(5L);
+        assertThat(reviewList.get(2).getRecommend()).isEqualTo(true);
     }
 
     @Test

@@ -17,6 +17,7 @@ import java.util.List;
 @Builder
 public class OrderResponse {
     private Long id;
+    private Long userId;
     private List<OrderItemResponse> itemList;
     private LocalDateTime orderDate;
     private OrderStatus orderStatus;
@@ -24,6 +25,7 @@ public class OrderResponse {
     public static OrderResponse from(Order order) {
         return OrderResponse.builder()
                 .id(order.getId())
+                .userId(order.getUser().getId())
                 .itemList(OrderItemResponse.fromList(order.getOrderItemList()))
                 .orderDate(order.getOrderDate())
                 .orderStatus(order.getOrderStatus())

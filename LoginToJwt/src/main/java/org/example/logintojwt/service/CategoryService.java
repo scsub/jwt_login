@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.logintojwt.entity.Category;
 import org.example.logintojwt.repository.CategoryRepository;
-import org.example.logintojwt.request.CategoryRequest;
 import org.example.logintojwt.response.CategoryResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -21,22 +20,22 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     @PreAuthorize("hasRole('USER')")
-    public void createCategory(String name, Long parentId) {
+    public void createCategory(String categoryName, Long parentId) {
         Category category;
         if (parentId == null) { // 부모가 없음
-            category = Category.builder().name(name).build();
+            category = Category.builder().name(categoryName).build();
         } else { // 부모가 있어서 부모를 카테고리 설정하고 부모를 설정
             Category parentCategory = categoryRepository.findById(parentId).orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 없습니다"));
-            category = Category.builder().name(name).parent(parentCategory).build();
+            category = Category.builder().name(categoryName).parent(parentCategory).build();
             parentCategory.addChild(category);
         }
         categoryRepository.save(category);
     }
 
     //전부다 찾기는 하나 1,2,3만 보여줘도 될걸 1,2,3 2,3, 3 이런식으로 보여줘서 사실상 사용하는게 아님
-    public List<Category> findAllCategory() {
-        return categoryRepository.findAll();
-    }
+    //public List<Category> findAllCategory() {
+    //    return categoryRepository.findAll();
+    //}
 
 
     public List<CategoryResponse> findAllCategories() {
@@ -73,12 +72,13 @@ public class CategoryService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public CategoryResponse updateCategoryParent(Long parentId, Long id) {
+    public CategoryResponse updateParentCategory(Long newParentId, Long id) {
         Category childCategory = categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
-        Category newParentCategory = categoryRepository.findById(parentId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
+        Category newParentCategory = categoryRepository.findById(newParentId).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
         Category oldParentCategory = childCategory.getParent();
         if (oldParentCategory != null) {
             oldParentCategory.getChildren().remove(childCategory);
+            categoryRepository.save(oldParentCategory);
         }
         newParentCategory.addChild(childCategory);
         categoryRepository.save(childCategory);
@@ -87,15 +87,9 @@ public class CategoryService {
     }
 
     // 삭제할때 자식 카테고리 까지 삭제된다
-    //클라이언트에서 id를 받아올것
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteCategoryById(Long id) {
+        categoryRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을수 없음"));
         categoryRepository.deleteById(id);
-    }
-
-    // 클라이언트에서 id주는 방법을 사용하지 못할경우 name을 받아 사용
-    @PreAuthorize("hasRole('ADMIN')")
-    public void deleteCategoryByName(String name) {
-        categoryRepository.deleteByName(name);
     }
 }

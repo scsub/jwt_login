@@ -34,8 +34,10 @@ dependencies {
 
     // mysql
     //implementation 'com.mysql:mysql-connector-j'
+
     // PostgreSQL
     implementation 'org.postgresql:postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
 
     // 롬복
     annotationProcessor 'org.projectlombok:lombok'
@@ -76,6 +78,12 @@ dependencies {
 
     // @ConfigurationProperties 사용하기위해
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // 테스트DB용
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.postgresql:postgresql'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers' // 스프링3.1부터 지원하는 testcontainers
 }
 
 tasks.named('test') {

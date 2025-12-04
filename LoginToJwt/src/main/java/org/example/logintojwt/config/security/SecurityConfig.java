@@ -69,6 +69,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 프리플라이트 통과
                 .requestMatchers("/swagger-ui/**","/v3/**").permitAll()
                 .requestMatchers("/api/auth/**","/images/**").permitAll()
+                .requestMatchers("/api/users/me").hasRole("USER")
                 /*.requestMatchers(HttpMethod.GET,"/api/categories/**","/api/products/**").permitAll()
                 .requestMatchers("/api/carts/**").hasRole("USER")
                 .requestMatchers("admin/**","/api/categories/**","/api/products/**").hasRole("ADMIN")*/
@@ -104,12 +105,12 @@ public class SecurityConfig {
     }
 
     // http를 https로 리다이렉트
-    @Bean
-    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> servletContainer(){
-        return server -> server.addAdditionalTomcatConnectors(createHttpConnector());
-    }
+//    @Bean
+//    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> servletContainer(){
+//        return server -> server.addAdditionalTomcatConnectors(createHttpConnector());
+//    }
 
-    private Connector createHttpConnector(){
+/*    private Connector createHttpConnector(){
         Connector connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);
         connector.setScheme("http");
         connector.setPort(8080);
@@ -117,7 +118,7 @@ public class SecurityConfig {
         connector.setRedirectPort(8443);
         return connector;
 
-    }
+    }*/
 
     // ROLE_ADMIN이 ROLE_USER를 포함하도록 만듬
     @Bean

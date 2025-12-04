@@ -13,7 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,9 +24,9 @@ public class Product {
     private String description;
 
     @Column(nullable = false)
-    private long price;
+    private Long price;
 
-    private long quantity;
+    private Long quantity;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,7 +42,7 @@ public class Product {
     private List<ProductImage> productImageList;
 
     @Builder
-    public Product(Long id, String name, String description, long price, long quantity, Category category) {
+    public Product(Long id, String name, String description, Long price, Long quantity, Category category) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -78,14 +77,14 @@ public class Product {
         review.updateProduct(this);
     }
 
-    public void updatePrice(long price) {
+    public void updatePrice(Long price) {
         if (price < 0) {
             throw new IllegalArgumentException("가격은 음수가 될수없습니다");
         }
         this.price = price;
     }
 
-    public void updateQuantity(long quantity) {
+    public void updateQuantity(Long quantity) {
         if (quantity < 0) {
             throw new IllegalArgumentException("수량은 음수가 될수없습니다");
         }

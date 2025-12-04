@@ -46,14 +46,7 @@ public class UserController {
     @PatchMapping("/me/password")
     public ResponseEntity<?> changePassword(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UserPasswordChangeRequest userPasswordChangeRequest) {
         Long userId = userDetails.getId();
-        String originalPassword = userPasswordChangeRequest.getOriginalPassword();
-        String newPassword = userPasswordChangeRequest.getNewPassword();
-        String confirmNewPassword = userPasswordChangeRequest.getConfirmNewPassword();
-        log.warn(String.valueOf(userId));
-        log.warn(originalPassword);
-        log.warn(newPassword);
-        log.warn(confirmNewPassword);
-        userService.changePassword(userId, originalPassword, newPassword, confirmNewPassword);
+        userService.changePassword(userId, userPasswordChangeRequest);
         return ResponseEntity.ok().build();
 
     }

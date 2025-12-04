@@ -23,13 +23,19 @@ public class CartItemResponse {
     private ProductImageResponse productImageResponse;
 
     public static CartItemResponse from(CartItem cartItem) {
+        List<ProductImage> productImageList = cartItem.getProduct().getProductImageList();
+        ProductImageResponse productImageResponse = new ProductImageResponse();
+        if (productImageList!=null && !productImageList.isEmpty()) {
+            productImageResponse = ProductImageResponse.from(productImageList.get(0));
+        }
+
         return CartItemResponse.builder()
                 .quantity(cartItem.getQuantity())
                 .id(cartItem.getId())
                 .productId(cartItem.getProduct().getId())
                 .productName(cartItem.getProduct().getName())
                 .productPrice(cartItem.getProduct().getPrice())
-                .productImageResponse(ProductImageResponse.from(cartItem.getProduct().getProductImageList().get(0)))
+                .productImageResponse(productImageResponse)
                 .build();
     }
 

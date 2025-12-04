@@ -29,7 +29,7 @@ public class OrderService {
     public void createOrder(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("id","유저를 찾을수 없음"));
         Cart cart = user.getCart();
-        if (cart == null) {
+        if (cart.getCartItems().isEmpty()) {
             throw new IllegalStateException("장바구니에 상품을 채워주세요");
         }
         Order order = Order.builder()

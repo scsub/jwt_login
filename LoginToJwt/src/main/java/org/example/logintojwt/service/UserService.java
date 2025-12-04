@@ -43,6 +43,7 @@ public class UserService {
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final JwtTokenProperties jwtTokenProperties;
+
     public UserResponse signup(UserRegistrationRequest userRegistrationRequest) {
         String username = userRegistrationRequest.getUsername();
         String password = userRegistrationRequest.getPassword();
@@ -64,16 +65,16 @@ public class UserService {
                 .address(address)
                 .build();
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
         // 카트 생성
         Cart cart = Cart.builder()
-                .user(user)
+                .user(savedUser)
                 .build();
         cartRepository.save(cart);
-        user.assignCart(cart);
+        savedUser.assignCart(cart);
 
-        return new UserResponse(username, "회원 가입 성공");
+        return new UserResponse(username, savedUser.getId());
     }
 
     public LoginSuccessResponse login(UserLoginRequest userLoginRequest, HttpServletResponse response) {
@@ -121,20 +122,16 @@ public class UserService {
 
         User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
         return LoginSuccessResponse.builder()
-                .message("로그인 성공")
-                .role(user.getRoles())
+                .userId(user.getId())
+                .roles(user.getRoles())
                 .build();
     }
 
     @PreAuthorize("hasRole('USER')")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
-        log.info("로그아웃 시작");
         String refreshToken = refreshTokenService.getRefreshToken(request);
-        log.info("토큰 : {}", refreshToken);
         String username = jwtProvider.getUsername(refreshToken);
-        log.info("유저 : {}", username);
         refreshTokenService.deleteRefreshToken(username);
-        log.info("삭제완료");
 
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", null)
                 .httpOnly(true)
@@ -199,9 +196,13 @@ public class UserService {
     }
 
     @PreAuthorize("hasRole('USER')")
-    public void changePassword(Long userId, String oldPassword, String newPassword, String confirmNewPassword){
+    public void changePassword(Long userId, UserPasswordChangeRequest userPasswordChangeRequest){
+        String originalPassword = userPasswordChangeRequest.getOriginalPassword();
+        String newPassword = userPasswordChangeRequest.getNewPassword();
+        String confirmNewPassword = userPasswordChangeRequest.getConfirmNewPassword();
         User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("유저를 발견하지 못함"));
-        if (passwordEncoder.matches(oldPassword, user.getPassword()) && newPassword.equals(confirmNewPassword)) {
+
+        if (passwordEncoder.matches(originalPassword, user.getPassword()) && newPassword.equals(confirmNewPassword)) {
             user.changePassword(passwordEncoder.encode(newPassword));
         }else {
             throw new IllegalStateException("비밀번호를 변경하지못함");

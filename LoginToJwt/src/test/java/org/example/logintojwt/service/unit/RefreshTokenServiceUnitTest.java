@@ -41,15 +41,12 @@ class RefreshTokenServiceUnitTest {
     private CustomUserDetailsService customUserDetailsService;
     @Mock
     private JwtTokenProperties jwtTokenProperties;
-
     @Mock
     private UserDetails userDetails;
     @Mock
     private HttpServletRequest httpServletRequest;
-
     @Mock
     private HttpServletResponse httpServletResponse;
-
     private RefreshToken refreshToken;
     private RefreshTokenRequest refreshTokenRequest;
     private RefreshTokenRequest newRefreshTokenRequest;
@@ -57,19 +54,19 @@ class RefreshTokenServiceUnitTest {
     @BeforeEach
     void setUp() {
         refreshToken = RefreshToken.builder()
-                .username("username")
+                .username("kimone")
                 .token("refreshToken")
                 .expiration(Instant.now().plusSeconds(604800L).getEpochSecond())
                 .build();
 
         refreshTokenRequest = RefreshTokenRequest.builder()
-                .username("username")
-                .token("refreshToken")
+                .username("kimone")
+                .token("requestRefreshToken")
                 .expiration(Instant.now().plusSeconds(604800L).getEpochSecond())
                 .build();
         newRefreshTokenRequest = RefreshTokenRequest.builder()
-                .username("username")
-                .token("newRefreshToken")
+                .username("kimone")
+                .token("newRequestRefreshToken")
                 .expiration(Instant.now().plusSeconds(604800L).getEpochSecond())
                 .build();
 
@@ -79,6 +76,7 @@ class RefreshTokenServiceUnitTest {
     @DisplayName("첫번쨰 로그인: 리프레시 토큰 저장 성공")
     void createRefreshToken() {
         when(refreshTokenRepository.findByUsername(refreshTokenRequest.getUsername())).thenReturn(Optional.empty());
+        //
         refreshTokenService.saveRefreshToken(refreshTokenRequest);
 
         ArgumentCaptor<RefreshToken> captor = ArgumentCaptor.forClass(RefreshToken.class);
